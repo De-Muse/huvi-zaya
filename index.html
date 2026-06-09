@@ -1,99 +1,19 @@
-import { useState, useEffect, useRef } from "react";
-
-// ── ZODIAC HELPERS ──
-function getMn(year) {
-  const a=['хулгана','үхэр','бар','туулай','луу','могой','морь','хонь','мич','тахиа','нохой','гахай'];
-  const e=['Мод','Гал','Газар','Төмөр','Ус'];
-  return{animal:a[((year-4)%12+12)%12],element:e[((Math.floor(((year-4)%10)/2))%5+5)%5]};
-}
-function getWs(month,day){
-  const m=parseInt(month),d=parseInt(day);
-  if((m===12&&d>=22)||(m===1&&d<20))return{name:'Матарын орд',sym:'♑'};
-  if((m===1&&d>=20)||(m===2&&d<19))return{name:'Хумхын орд',sym:'♒'};
-  if((m===2&&d>=19)||(m===3&&d<20))return{name:'Загасны орд',sym:'♓'};
-  if((m===3&&d>=20)||(m===4&&d<21))return{name:'Хонины орд',sym:'♈'};
-  if((m===4&&d>=21)||(m===5&&d<21))return{name:'Үхрийн орд',sym:'♉'};
-  if((m===5&&d>=21)||(m===6&&d<22))return{name:'Ихрийн орд',sym:'♊'};
-  if((m===6&&d>=22)||(m===7&&d<23))return{name:'Мэлхийн орд',sym:'♋'};
-  if((m===7&&d>=23)||(m===8&&d<23))return{name:'Арслангийн орд',sym:'♌'};
-  if((m===8&&d>=23)||(m===9&&d<23))return{name:'Охины орд',sym:'♍'};
-  if((m===9&&d>=23)||(m===10&&d<23))return{name:'Жинлүүрийн орд',sym:'♎'};
-  if((m===10&&d>=23)||(m===11&&d<22))return{name:'Хилэнцийн орд',sym:'♏'};
-  if((m===11&&d>=22)||(m===12&&d<22))return{name:'Нумын орд',sym:'♐'};
-  return{name:'Матарын орд',sym:'♑'};
-}
-
-// ── SYSTEM PROMPTS ──
-function buildSystem(mn, ws, gender, type) {
-  const desc = {
-    fate: `Энэ хүний хувь заяа, амьдралын гол зорилгыг уншина. "Чи" гэж шууд хандаж яри. Дотоод мөн чанар, заяаны зам, энэ амьдралд юуг биелүүлэхээр ирснийг хэл. Жил, орд дурдахгүй.`,
-    love: `Энэ хүний хайр дурлалын замналыг уншина. "Чи" гэж шууд хандаж яри. Хайр хэрхэн ирдэг, ямар хүнтэй нийцдэг, харилцаанд юу хүлээж байгааг хэл. Жил, орд дурдахгүй.`,
-    career: `Энэ хүний ажил карьерийн замыг уншина. "Чи" гэж шууд хандаж яри. Ямар чиглэлд авьяастай, амжилт хэрхэн ирдэг, карьерт юу хүлээж байгааг хэл. Жил, орд дурдахгүй.`,
-    luck: `Энэ хүний одоогийн аз завшааныг уншина. "Чи" гэж шууд хандаж яри. Энэ үед аз хэрхэн байгаа, хийморь өндөр эсэх, шийдвэр гарах тохиромжтой цагийг хэл.`,
-    lifecycle: `Энэ хүний амьдралын мөчлөгийг уншина. "Чи" гэж шууд хандаж яри. 4 үе шатыг товч дурьд: өсвөр нас (10-20), залуу нас (20-30), дунд нас (30-40), боловсролт нас (40-50). Тус бүр 1-2 өгүүлбэр. Жил, орд дурдахгүй. Заавал бүрэн дуусгаарай.`,
-    finance: `Энэ хүний санхүүгийн замналыг уншина. "Чи" гэж шууд хандаж яри. Баялаг хэрхэн ирдэг, санхүүд аз тохиох цаг, санхүүгийн сул тал, хамгийн тохиромжтой орлогын эх үүсвэрийг хэл. Жил, орд дурдахгүй.`,
-    health: `Энэ хүний эрүүл мэндийн замналыг уншина. "Чи" гэж шууд хандаж яри. Биеийн хамгийн хүчтэй тал, анхаарах хэсэг, эрүүл мэндэд нөлөөлж буй зүйлсийг хэл. Жил, орд дурдахгүй.`,
-    avoid: `Энэ хүний зайлсхийх ёстой зүйлсийг уншина. "Чи" гэж шууд хандаж яри. Амьдралд учрах гол саад, хор хөнөөлтэй нөлөө, зайлсхийх хүн, нөхцөл байдлыг хэл. Жил, орд дурдахгүй.`,
-    buyan: `Энэ хүний буян хишгийг дуудах арга замыг уншина. "Чи" гэж шууд хандаж яри. Хишиг буян татах зан үйл, сэтгэлгээ, хийх ёстой зүйлсийг хэл. Жил, орд дурдахгүй.`,
-    sakhius: `Энэ хүний хамгаалагч сахиусыг уншина. "Чи" гэж шууд хандаж яри. Ямар сахиус тань хамгаалж байгаа, тэдний нөлөө, хэрхэн холбогдохыг хэл. Жил, орд дурдахгүй.`,
-    danger: `Энэ хүний амьдралд учирч болох гай зовлонг уншина. "Чи" гэж шууд хандаж яри. Ямар хүнд үед болгоомжлох, ямар сорилт ирж болохыг хэл. Жил, орд дурдахгүй.`,
-    reincarnation: `Энэ хүний өмнөх ба дараа төрлийн замналыг уншина. "Чи" гэж шууд хандаж яри. Өмнөх төрлөөс авчирсан буян, сул тал, дараа төрлийн зам юу байхыг хэл. Жил, орд дурдахгүй.`,
-  };
-  return `Чи бол Хувь-Заяа — нууцлаг зөнч. Монгол, Төвд зурхай, Астрологийн мэдлэгтэй.
-Хэрэглэгчийн зурхай: ${mn.element} ${mn.animal}ын жил, ${ws.name} орд, ${gender}.
-Даалгавар: ${desc[type]}
-ДҮРЭМ:
-- Markdown (#, *, _, **) огт хэрэглэхгүй
-- "Чи" гэж шууд хандана — жил, орд, элементийн нэр дурдахгүй
-- Товч, гүн, нууцлаг — 3-4 өгүүлбэр (амьдралын мөчлөг 8 өгүүлбэр хүртэл)
-- Эхний өгүүлбэр хамгийн хүчтэй байх
-- "AI" гэж хэзээ ч хэлэхгүй
-- Заавал бүрэн дуусгаарай — дундаас тасалдахгүй`;
-}
-
-async function callClaude(system, userMsg) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,system,messages:[{role:"user",content:userMsg}]})
-  });
-  const data = await res.json();
-  if(data.content?.[0]) return data.content[0].text.replace(/[#*_`]/g,'').trim();
-  throw new Error("API error");
-}
-
-// ── TABS CONFIG ──
-const BAG1_TABS = [
-  {id:"fate",  icon:"🌌", label:"Хувь заяа"},
-  {id:"love",  icon:"🌹", label:"Хосын зохицол"},
-  {id:"career",icon:"⭐", label:"Ажил карьер"},
-  {id:"luck",  icon:"💫", label:"Аз хийморь"},
-];
-const BAG2_TABS = [
-  {id:"lifecycle", icon:"🔄", label:"Амьдралын мөчлөг"},
-  {id:"finance",   icon:"💰", label:"Санхүүгийн зурхай"},
-  {id:"health",    icon:"🌿", label:"Эрүүл мэнд"},
-  {id:"avoid",     icon:"⚡", label:"Зайлсхийх зүйлс"},
-];
-const BAG3_TABS = [
-  {id:"buyan",         icon:"✨", label:"Буян хишиг дуудах"},
-  {id:"sakhius",       icon:"🛡", label:"Хамгаалагч сахиус"},
-  {id:"danger",        icon:"🌑", label:"Гай зовлон"},
-  {id:"reincarnation", icon:"♾", label:"Өмнө ба дараа төрөл"},
-];
-
-const css = `
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400&display=swap');
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Хувь · Заяа</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#07060f;}
-.app{min-height:100vh;background:#07060f;color:#e8e0d0;font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden;}
-
-/* STARS */
+body{background:#07060f;color:#e8e0d0;font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden;min-height:100vh;}
 .star{position:fixed;border-radius:50%;background:#e8e0d0;pointer-events:none;z-index:0;}
 @keyframes tw{0%,100%{opacity:0}50%{opacity:var(--op)}}
-
+.page{display:none;min-height:100vh;position:relative;z-index:1;}
+.page.active{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;}
 /* HOME */
-.home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;position:relative;z-index:1;}
+#home{text-align:center;}
 .home-orb{width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 38% 35%,rgba(230,200,140,0.55),rgba(120,70,180,0.65) 50%,rgba(7,6,15,0.95) 80%);margin:0 auto 2.5rem;position:relative;animation:orbf 6s ease-in-out infinite;box-shadow:0 0 60px rgba(155,111,212,0.2),0 0 120px rgba(155,111,212,0.06);}
 .home-orb::before{content:'';position:absolute;inset:-14px;border-radius:50%;border:1px solid rgba(201,169,110,0.12);animation:orbr 12s linear infinite;}
 .home-orb::after{content:'';position:absolute;inset:-28px;border-radius:50%;border:1px solid rgba(155,111,212,0.07);animation:orbr 20s linear infinite reverse;}
@@ -103,7 +23,7 @@ body{background:#07060f;}
 .big-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3.5rem,10vw,7rem);font-weight:300;line-height:1;margin-bottom:0.5rem;letter-spacing:0.02em;}
 .big-title em{font-style:italic;color:#c9a96e;}
 .title-sep{width:40px;height:1px;background:linear-gradient(to right,transparent,rgba(201,169,110,0.35),transparent);margin:0.8rem auto 1.2rem;}
-.sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:#6b6480;margin-bottom:3rem;letter-spacing:0.03em;}
+.sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:#6b6480;margin-bottom:3rem;}
 .form-box{width:100%;max-width:440px;}
 .flabel{font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;color:#7a5f35;margin-bottom:0.5rem;display:block;text-align:left;}
 .date-row{display:grid;grid-template-columns:2fr 1fr 1fr;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.8rem;background:rgba(14,12,26,0.5);}
@@ -115,19 +35,9 @@ body{background:#07060f;}
 .gbtn{background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.12);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;padding:0.9rem;cursor:pointer;transition:all 0.2s;}
 .gbtn:last-child{border-right:none;}
 .gbtn.sel,.gbtn:hover{color:#c9a96e;background:rgba(201,169,110,0.06);}
-.sbtn{width:100%;background:transparent;border:1px solid rgba(201,169,110,0.4);color:#c9a96e;font-family:'Inter',sans-serif;font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;padding:1.1rem;cursor:pointer;transition:all 0.25s;margin-top:0.3rem;}
-.sbtn:hover{border-color:rgba(201,169,110,0.85);color:#e8c878;background:rgba(201,169,110,0.05);}
-.fnote{font-size:0.63rem;color:#6b6480;text-align:center;margin-top:0.8rem;}
-.gender-row{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.7rem;}
-.gbtn{background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.15);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.85rem;cursor:pointer;transition:all 0.2s;}
-.gbtn:last-child{border-right:none;}
-.gbtn.sel,.gbtn:hover{color:#c9a96e;background:rgba(201,169,110,0.07);}
 .sbtn{width:100%;background:transparent;border:1px solid rgba(201,169,110,0.4);color:#e8e0d0;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;letter-spacing:0.02em;padding:1.1rem;cursor:pointer;transition:all 0.25s;margin-top:0.3rem;text-transform:none;}
 .sbtn em{font-style:italic;color:#c9a96e;}
 .sbtn:hover{border-color:rgba(201,169,110,0.85);background:rgba(201,169,110,0.04);}
-.fnote{font-size:0.63rem;color:#6b6480;text-align:center;margin-top:0.8rem;}
-
-/* TESTIMONIALS */
 .testi-wrap{width:100%;max-width:440px;margin-top:2.5rem;}
 .testi-sep{font-size:0.7rem;color:rgba(201,169,110,0.3);text-align:center;letter-spacing:0.5rem;margin-bottom:2rem;}
 .testi-list{display:flex;flex-direction:column;gap:1.2rem;}
@@ -135,39 +45,41 @@ body{background:#07060f;}
 .testi-stars{color:#c9a96e;font-size:0.7rem;letter-spacing:0.15em;margin-bottom:0.4rem;}
 .testi-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.95rem;color:rgba(232,224,208,0.6);line-height:1.7;margin-bottom:0.4rem;}
 .testi-name{font-size:0.62rem;letter-spacing:0.12em;color:#6b6480;}
-
+/* CHOOSE */
+#choose{text-align:center;gap:1.5rem;}
+.choose-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:300;}
+.choose-title em{font-style:italic;color:#c9a96e;}
+.choose-sub{font-size:0.78rem;color:#6b6480;}
+.choose-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;width:100%;max-width:440px;}
+.choose-card{background:rgba(14,12,26,0.8);border:1px solid rgba(201,169,110,0.15);padding:1.8rem 1.2rem;cursor:pointer;transition:all 0.25s;text-align:center;border-radius:2px;}
+.choose-card:hover{border-color:rgba(201,169,110,0.5);background:rgba(201,169,110,0.05);transform:translateY(-2px);}
+.choose-icon{font-size:2rem;display:block;margin-bottom:0.8rem;}
+.choose-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:#e8e0d0;margin-bottom:0.3rem;}
+.choose-free{font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:#9b6fd4;margin-top:0.5rem;display:block;}
 /* LOADING */
-.loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;text-align:center;padding:2rem;position:relative;z-index:1;}
+#loading{text-align:center;gap:1.5rem;}
 .moon{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(201,169,110,0.5),rgba(100,60,160,0.7));animation:mp 2.5s ease-in-out infinite;box-shadow:0 0 50px rgba(155,111,212,0.2);}
 @keyframes mp{0%,100%{transform:scale(1);opacity:0.8}50%{transform:scale(1.08);opacity:1}}
 .ltext{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.3rem;color:#c9a96e;}
 .lsub{font-size:0.72rem;color:#6b6480;letter-spacing:0.1em;}
-
 /* RESULT */
-.result{min-height:100vh;padding:2.5rem 1.5rem 5rem;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
+#result{justify-content:flex-start;padding-top:2.5rem;padding-bottom:5rem;}
 .result-inner{width:100%;max-width:580px;}
 .pills{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:2rem;}
 .pill{font-size:0.65rem;letter-spacing:0.1em;padding:0.3rem 0.8rem;border:1px solid rgba(201,169,110,0.2);color:#7a5f35;}
-
-/* BAG SELECTOR */
-.bag-selector{display:flex;gap:0;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.3rem;}
+.bag-selector{display:flex;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.3rem;}
 .bag-btn{flex:1;background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.15);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.7rem 0.3rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.4;}
 .bag-btn:last-child{border-right:none;}
 .bag-btn.active{color:#c9a96e;background:rgba(201,169,110,0.07);}
-.bag-btn .bprice{display:block;font-size:0.62rem;color:#7a5f35;margin-top:0.2rem;}
+.bprice{display:block;font-size:0.62rem;color:#7a5f35;margin-top:0.2rem;}
 .bag-btn.active .bprice{color:#c9a96e;}
-
-/* TABS */
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(201,169,110,0.1);margin-bottom:2rem;}
 .tab{background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.1);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.58rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.65rem 0.15rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.4;}
 .tab:last-child{border-right:none;}
 .tab .ti{font-size:0.95rem;display:block;margin-bottom:0.25rem;}
 .tab.active{color:#c9a96e;background:rgba(201,169,110,0.07);}
-
 .rlabel{font-size:0.58rem;letter-spacing:0.3em;text-transform:uppercase;color:#9b6fd4;margin-bottom:1.2rem;}
 .rtext{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;line-height:1.9;color:rgba(232,224,208,0.87);margin-bottom:1.5rem;}
-
-/* LOCKED */
 .locked-wrap{position:relative;}
 .locked-blur{filter:blur(7px);user-select:none;pointer-events:none;font-family:'Cormorant Garamond',serif;font-size:1.05rem;line-height:1.9;color:rgba(232,224,208,0.6);padding-bottom:6rem;}
 .gate{position:absolute;bottom:0;left:0;right:0;padding-top:5rem;background:linear-gradient(to bottom,transparent,rgba(7,6,15,0.98) 35%);display:flex;flex-direction:column;align-items:center;gap:0.8rem;text-align:center;padding-bottom:0.5rem;}
@@ -177,349 +89,159 @@ body{background:#07060f;}
 .gbtn2:hover{background:#d4b87e;}
 .back-btn{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#6b6480;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;margin-top:2rem;display:block;}
 .back-btn:hover{color:#c9a96e;}
-
-/* CHOOSE */
-.choose{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;position:relative;z-index:1;}
-.choose-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:300;text-align:center;margin-bottom:0.5rem;}
-.choose-title em{font-style:italic;color:#c9a96e;}
-.choose-sub{font-size:0.78rem;color:#6b6480;text-align:center;margin-bottom:2.5rem;}
-.choose-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;width:100%;max-width:440px;}
-.choose-card{background:rgba(14,12,26,0.8);border:1px solid rgba(201,169,110,0.15);padding:1.8rem 1.2rem;cursor:pointer;transition:all 0.25s;text-align:center;}
-.choose-card:hover{border-color:rgba(201,169,110,0.5);background:rgba(201,169,110,0.05);transform:translateY(-2px);}
-.choose-icon{font-size:2rem;display:block;margin-bottom:0.8rem;}
-.choose-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:400;color:#e8e0d0;margin-bottom:0.3rem;}
-.choose-desc{font-size:0.68rem;color:#6b6480;line-height:1.5;}
-.choose-free{font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:#9b6fd4;margin-top:0.5rem;display:block;}
-
 /* PAYMENT */
-.payment{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;text-align:center;position:relative;z-index:1;}
+#payment{text-align:center;gap:1.5rem;}
 .ptitle{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;}
 .ptitle em{font-style:italic;color:#c9a96e;}
 .qrbox{background:#fff;padding:1.2rem;display:inline-flex;flex-direction:column;align-items:center;gap:0.7rem;}
 .qrlabel{font-size:0.7rem;color:#333;font-family:'Inter',sans-serif;font-weight:400;}
 .pinfo{font-size:0.75rem;color:#6b6480;line-height:1.8;max-width:280px;}
 .pback{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#6b6480;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;}
-.pback:hover{color:#c9a96e;}
 .hr{width:40px;height:1px;background:rgba(201,169,110,0.2);}
-`;
+</style>
+</head>
+<body>
 
-export default function App() {
-  const [page, setPage] = useState("home");
-  const [gender, setGender] = useState("");
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState("");
-  const [day, setDay] = useState("");
-  const [loadText, setLoadText] = useState("Одод уншиж байна...");
-  const [userData, setUserData] = useState(null);
-  const [readings, setReadings] = useState({});
-  const [activeBag, setActiveBag] = useState(1);
-  const [activeTab, setActiveTab] = useState("fate");
-  const [unlockedBags, setUnlockedBags] = useState([]);
-  const [payingBag, setPayingBag] = useState(null);
-  const qrRef = useRef(null);
-
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = css;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-
-  // Stars
-  useEffect(() => {
-    const stars = Array.from({length:100},(_,i)=>{
-      const el = document.createElement("div");
-      el.className = "star";
-      const sz = Math.random()*1.8+0.3;
-      el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation:tw ${Math.random()*4+2}s ease-in-out infinite ${Math.random()*6}s;--op:${Math.random()*0.5+0.15}`;
-      document.body.appendChild(el);
-      return el;
-    });
-    return () => stars.forEach(s => s.remove());
-  }, []);
-
-  useEffect(() => {
-    if (page === "payment" && qrRef.current) {
-      const canvas = qrRef.current;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle="#fff"; ctx.fillRect(0,0,160,160);
-      const cells=21,cell=160/cells;
-      const fin=(x,y)=>{ctx.fillStyle="#000";ctx.fillRect(x*cell,y*cell,7*cell,7*cell);ctx.fillStyle="#fff";ctx.fillRect((x+1)*cell,(y+1)*cell,5*cell,5*cell);ctx.fillStyle="#000";ctx.fillRect((x+2)*cell,(y+2)*cell,3*cell,3*cell);};
-      fin(0,0);fin(14,0);fin(0,14);
-      for(let r=0;r<cells;r++) for(let c=0;c<cells;c++){
-        const inF=(r<8&&c<8)||(r<8&&c>=13)||(r>=13&&c<8);
-        if(!inF){const v=((r*cells+c*1664525+1013904223)&0xffffffff)/0xffffffff;if(v>0.5){ctx.fillStyle="#000";ctx.fillRect(c*cell,r*cell,cell,cell);}}
-      }
-    }
-  }, [page]);
-
-  async function startReading() {
-    if(!year||!month||!day){alert("Төрсөн огноогоо бөглөнө үү.");return;}
-    if(!gender){alert("Хүйсээ сонгоно уу.");return;}
-    const mn=getMn(parseInt(year));
-    const ws=getWs(month,day);
-    const ud={year,month,day,gender,mongolian:mn,western:ws};
-    setUserData(ud);
-    setPage("choose"); // сонголтын хуудас руу
-  }
-
-  async function beginReading(chosenType) {
-    setActiveTab(chosenType);
-    setActiveBag(1);
-    setPage("loading");
-    const texts=["Одод уншиж байна...","Монгол зурхай тайлж байна...","Таны заяаны замыг нэгтгэж байна...","Нууцыг илчилж байна..."];
-    let li=0;
-    const iv=setInterval(()=>{li=(li+1)%texts.length;setLoadText(texts[li]);},1500);
-    try {
-      const text = await callClaude(buildSystem(userData.mongolian,userData.western,userData.gender,chosenType),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${chosenType} зурхайг уншиж өгнө үү.`);
-      clearInterval(iv);
-      setReadings({[chosenType]:text});
-      setPage("result");
-    } catch(e){
-      clearInterval(iv);
-      alert("Алдаа гарлаа. Дахин оролдоно уу.");
-      setPage("choose");
-    }
-  }
-
-  async function switchTab(type) {
-    setActiveTab(type);
-    if(readings[type]) return;
-    // Determine which bag this tab belongs to
-    const bag1ids = BAG1_TABS.map(t=>t.id);
-    const bag2ids = BAG2_TABS.map(t=>t.id);
-    const bag3ids = BAG3_TABS.map(t=>t.id);
-    const requiredBag = bag1ids.includes(type)?1:bag2ids.includes(type)?2:3;
-    if(requiredBag===1&&type==="fate") return; // already loaded
-    if(requiredBag>1&&!unlockedBags.includes(requiredBag)) return;
-    if(requiredBag===1&&!unlockedBags.includes(1)&&type!=="fate") return;
-    setReadings(r=>({...r,[type]:"__loading__"}));
-    try {
-      const text = await callClaude(buildSystem(userData.mongolian,userData.western,userData.gender,type),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${type} зурхайг уншиж өгнө үү.`);
-      setReadings(r=>({...r,[type]:text}));
-    } catch(e){
-      setReadings(r=>({...r,[type]:"Алдаа гарлаа."}));
-    }
-  }
-
-  async function unlockBag(bag) {
-    setUnlockedBags(prev=>[...prev,bag]);
-    setPayingBag(null);
-    setActiveBag(bag);
-    // Load first tab of that bag
-    const firstTab = bag===1?BAG1_TABS[1]:bag===2?BAG2_TABS[0]:BAG3_TABS[0];
-    setActiveTab(firstTab.id);
-    setPage("loading");
-    setLoadText("Зурхай нэгтгэж байна...");
-    const tabs = bag===1?BAG1_TABS.slice(1):bag===2?BAG2_TABS:BAG3_TABS;
-    const newR = {...readings};
-    for(const t of tabs){
-      if(!newR[t.id]){
-        try{
-          newR[t.id] = await callClaude(buildSystem(userData.mongolian,userData.western,userData.gender,t.id),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${t.id} зурхайг уншиж өгнө үү.`);
-        }catch(e){newR[t.id]="Алдаа гарлаа.";}
-      }
-    }
-    setReadings(newR);
-    setPage("result");
-  }
-
-  function getCurrentTabs() {
-    if(activeBag===1) return BAG1_TABS;
-    if(activeBag===2) return BAG2_TABS;
-    return BAG3_TABS;
-  }
-
-  function isTabLocked(tabId) {
-    const bag1ids = BAG1_TABS.map(t=>t.id);
-    if(bag1ids.includes(tabId)) {
-      if(tabId==="fate") return false;
-      return !unlockedBags.includes(1);
-    }
-    const bag2ids = BAG2_TABS.map(t=>t.id);
-    if(bag2ids.includes(tabId)) return !unlockedBags.includes(2);
-    return !unlockedBags.includes(3);
-  }
-
-  const bagPrices = {1:"₮5,000",2:"₮9,900",3:"₮19,900"};
-  const bagLabels = {1:"Үндсэн",2:"Гүнзгий",3:"Нууц"};
-
-  const labels = {
-    fate:"✦ Таны хувь заяа",love:"✦ Хосын зохицол",career:"✦ Ажил карьер",luck:"✦ Аз хийморь",
-    lifecycle:"✦ Амьдралын мөчлөг",finance:"✦ Санхүүгийн зурхай",health:"✦ Эрүүл мэнд",avoid:"✦ Зайлсхийх зүйлс",
-    buyan:"✦ Буян хишиг дуудах",sakhius:"✦ Хамгаалагч сахиус",danger:"✦ Гай зовлон",reincarnation:"✦ Өмнө ба дараа төрөл"
-  };
-
-  const curText = readings[activeTab];
-  const locked = isTabLocked(activeTab);
-
-  return (
-    <div className="app">
-      {/* HOME */}
-      {page==="home"&&(
-        <div className="home">
-          <div className="home-orb"/>
-          <p className="eyebrow">Монгол · Төвд · Астрологи</p>
-          <h1 className="big-title">Хувь · <em>Заяа</em></h1>
-          <div className="title-sep"/>
-          <p className="sub">Чам дээр туссан од гэж бий</p>
-          <div className="form-box">
-            <span className="flabel">Төрсөн огноо</span>
-            <div className="date-row">
-              <input type="number" placeholder="1995" value={year} onChange={e=>setYear(e.target.value)} inputMode="numeric"/>
-              <input type="number" placeholder="09" value={month} onChange={e=>setMonth(e.target.value)} inputMode="numeric"/>
-              <input type="number" placeholder="29" value={day} onChange={e=>setDay(e.target.value)} inputMode="numeric"/>
-            </div>
-            <span className="flabel">Хүйс</span>
-            <div className="gender-row">
-              <button className={`gbtn${gender==="эрэгтэй"?" sel":""}`} onClick={()=>setGender("эрэгтэй")}>Эрэгтэй</button>
-              <button className={`gbtn${gender==="эмэгтэй"?" sel":""}`} onClick={()=>setGender("эмэгтэй")}>Эмэгтэй</button>
-            </div>
-            <button className="sbtn" onClick={startReading}>Нууцыг · <em>Тайлах</em></button>
-          </div>
-
-          <div className="testi-wrap">
-            <div className="testi-sep">✦</div>
-            <div className="testi-list">
-              <div className="testi-item">
-                <div className="testi-stars">★★★★★</div>
-                <p className="testi-text">"Хосын зохицол хэсэг уншаад нулимс дусаасан. Яг намайг хэлж байгаа юм шиг санагдсан."</p>
-                <span className="testi-name">— Н. Энхтуяа, Улаанбаатар</span>
-              </div>
-              <div className="testi-item">
-                <div className="testi-stars">★★★★★</div>
-                <p className="testi-text">"Карьерийн зурхай уншуулсан. Хэлсэн цаг нь таарч, одоо амжилттай явж байна."</p>
-                <span className="testi-name">— Б. Мөнхбаяр, Дархан</span>
-              </div>
-              <div className="testi-item">
-                <div className="testi-stars">★★★★★</div>
-                <p className="testi-text">"Хувь заяа хэсэг маань надад ямар ч хүн хэзээ ч хэлж байгаагүй зүйлийг хэлсэн."</p>
-                <span className="testi-name">— О. Солонго, Эрдэнэт</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CHOOSE */}
-      {page==="choose"&&userData&&(
-        <div className="choose">
-          <h2 className="choose-title">Юуг <em>уншуулах</em> вэ?</h2>
-          <p className="choose-sub">Нэгийг сонгоно уу — үнэгүй уншигдана</p>
-          <div className="choose-grid">
-            {BAG1_TABS.map(t=>(
-              <div key={t.id} className="choose-card" onClick={()=>beginReading(t.id)}>
-                <span className="choose-icon">{t.icon}</span>
-                <div className="choose-name">{t.label}</div>
-                <span className="choose-free">✦ Үнэгүй</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* LOADING */}
-      {page==="loading"&&(
-        <div className="loading">
-          <div className="moon"/>
-          <p className="ltext">{loadText}</p>
-          <p className="lsub">Таны заяаны замыг нэгтгэж байна</p>
-        </div>
-      )}
-
-      {/* RESULT */}
-      {page==="result"&&userData&&(
-        <div className="result">
-          <div className="result-inner">
-            <div className="pills">
-              <span className="pill">{userData.mongolian.element} {userData.mongolian.animal}</span>
-              <span className="pill">{userData.western.sym} {userData.western.name}</span>
-              <span className="pill">{userData.year} он</span>
-            </div>
-
-            {/* Bag selector */}
-            <div className="bag-selector">
-              {[1,2,3].map(b=>(
-                <button key={b} className={`bag-btn${activeBag===b?" active":""}`} onClick={()=>{setActiveBag(b);const t=b===1?"fate":b===2?"lifecycle":"buyan";setActiveTab(t);}}>
-                  {bagLabels[b]}
-                  <span className="bprice">{b===1?"Үнэгүй + "+bagPrices[1]:bagPrices[b]}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Tabs */}
-            <div className="tabs">
-              {getCurrentTabs().map(t=>(
-                <button key={t.id} className={`tab${activeTab===t.id?" active":""}`} onClick={()=>switchTab(t.id)}>
-                  <span className="ti">{t.icon}</span>{t.label}
-                </button>
-              ))}
-            </div>
-
-            <p className="rlabel">{labels[activeTab]}</p>
-
-            {/* Content */}
-            {locked ? (
-              <div className="locked-wrap">
-                <div className="locked-blur">
-                  Чиний заяаны нууц энд нуугдаж байна. Одод чиний замыг харж байна. Энэ хэсгийг нээхэд бэлэн үү?
-                  Чиний хайж буй хариулт энд байна...
-                </div>
-                <div className="gate">
-                  <p className="gtitle">{activeBag===1?"Үлдсэн 3 зурхайг нээх":activeBag===2?"Гүнзгий уншилт нээх":"Нууц уншилт нээх"}</p>
-                  <p className="gprice">
-                    {activeBag===1?"Хосын зохицол · Карьер · Аз хийморь":
-                     activeBag===2?"Амьдралын мөчлөг · Санхүү · Эрүүл мэнд · Зайлсхийх":
-                     "Буян · Сахиус · Гай зовлон · Дараа төрөл"}
-                  </p>
-                  <button className="gbtn2" onClick={()=>{setPayingBag(activeBag);setPage("payment");}}>
-                    QPay-аар төлөх — {bagPrices[activeBag]}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                {curText==="__loading__" ? (
-                  <p className="rtext" style={{color:"#6b6480",fontStyle:"italic"}}>Уншиж байна...</p>
-                ) : (
-                  <p className="rtext">{curText}</p>
-                )}
-                {activeTab==="fate"&&!unlockedBags.includes(1)&&(
-                  <div className="locked-wrap">
-                    <div className="locked-blur">
-                      Хосын нийцлийн тооцоо таны хожим учрах хүний шинжийг илчлэнэ.
-                      Карьерийн шийдэх цаг ойртож байна. Хийморь тань энэ саруудад...
-                    </div>
-                    <div className="gate">
-                      <p className="gtitle">Үлдсэн 3 зурхайг<br/>нээх үү?</p>
-                      <p className="gprice">Хосын зохицол · Карьер · Аз хийморь</p>
-                      <button className="gbtn2" onClick={()=>{setPayingBag(1);setPage("payment");}}>QPay-аар төлөх — ₮5,000</button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            <button className="back-btn" onClick={()=>setPage("home")}>← Дахин уншуулах</button>
-          </div>
-        </div>
-      )}
-
-      {/* PAYMENT */}
-      {page==="payment"&&(
-        <div className="payment">
-          <p className="ptitle">Нууцыг <em>нээх</em></p>
-          <p style={{fontSize:"0.78rem",color:"#6b6480"}}>QPay уншуулаад зурхайгаа бүтнээр харна уу</p>
-          <div className="qrbox">
-            <canvas ref={qrRef} width={160} height={160}/>
-            <div className="qrlabel">QPay · Хувь-Заяа · {bagPrices[payingBag]}</div>
-          </div>
-          <p className="pinfo">Төлбөр хийсний дараа доорх товч дарж нэвтэрнэ үү</p>
-          <button className="gbtn2" onClick={()=>unlockBag(payingBag)}>Төлбөр баталгаажуулах</button>
-          <div className="hr"/>
-          <button className="pback" onClick={()=>setPage("result")}>← Буцах</button>
-        </div>
-      )}
+<!-- HOME -->
+<div class="page active" id="home">
+  <div class="home-orb"></div>
+  <p class="eyebrow">Монгол · Төвд · Астрологи</p>
+  <h1 class="big-title">Хувь · <em>Заяа</em></h1>
+  <div class="title-sep"></div>
+  <p class="sub">Чам дээр туссан од гэж бий</p>
+  <div class="form-box">
+    <span class="flabel">Төрсөн огноо</span>
+    <div class="date-row">
+      <input type="number" id="year" placeholder="1995" inputmode="numeric">
+      <input type="number" id="month" placeholder="09" inputmode="numeric">
+      <input type="number" id="day" placeholder="29" inputmode="numeric">
     </div>
-  );
-}
+    <span class="flabel">Хүйс</span>
+    <div class="gender-row">
+      <button class="gbtn" onclick="selGender(this,'эрэгтэй')">Эрэгтэй</button>
+      <button class="gbtn" onclick="selGender(this,'эмэгтэй')">Эмэгтэй</button>
+    </div>
+    <button class="sbtn" onclick="goChoose()">Нууцыг · <em>Тайлах</em></button>
+  </div>
+  <div class="testi-wrap">
+    <div class="testi-sep">✦</div>
+    <div class="testi-list">
+      <div class="testi-item">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Хосын зохицол хэсэг уншаад нулимс дусаасан. Яг намайг хэлж байгаа юм шиг санагдсан."</p>
+        <span class="testi-name">— Н. Энхтуяа, Улаанбаатар</span>
+      </div>
+      <div class="testi-item">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Карьерийн зурхай уншуулсан. Хэлсэн цаг нь таарч, одоо амжилттай явж байна."</p>
+        <span class="testi-name">— Б. Мөнхбаяр, Дархан</span>
+      </div>
+      <div class="testi-item">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Хувь заяа хэсэг маань надад ямар ч хүн хэзээ ч хэлж байгаагүй зүйлийг хэлсэн."</p>
+        <span class="testi-name">— О. Солонго, Эрдэнэт</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHOOSE -->
+<div class="page" id="choose">
+  <h2 class="choose-title">Юуг <em>уншуулах</em> вэ?</h2>
+  <p class="choose-sub">Нэгийг сонгоно уу — үнэгүй уншигдана</p>
+  <div class="choose-grid">
+    <div class="choose-card" onclick="beginReading('fate')"><span class="choose-icon">🌌</span><div class="choose-name">Хувь заяа</div><span class="choose-free">✦ Үнэгүй</span></div>
+    <div class="choose-card" onclick="beginReading('love')"><span class="choose-icon">🌹</span><div class="choose-name">Хосын зохицол</div><span class="choose-free">✦ Үнэгүй</span></div>
+    <div class="choose-card" onclick="beginReading('career')"><span class="choose-icon">⭐</span><div class="choose-name">Ажил карьер</div><span class="choose-free">✦ Үнэгүй</span></div>
+    <div class="choose-card" onclick="beginReading('luck')"><span class="choose-icon">💫</span><div class="choose-name">Аз хийморь</div><span class="choose-free">✦ Үнэгүй</span></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="page" id="loading">
+  <div class="moon"></div>
+  <p class="ltext" id="loadingText">Одод уншиж байна...</p>
+  <p class="lsub">Таны заяаны замыг нэгтгэж байна</p>
+</div>
+
+<!-- RESULT -->
+<div class="page" id="result">
+  <div class="result-inner">
+    <div class="pills" id="pills"></div>
+    <div class="bag-selector">
+      <button class="bag-btn active" id="bagBtn1" onclick="switchBag(1)">Үндсэн<span class="bprice">Үнэгүй + ₮5,000</span></button>
+      <button class="bag-btn" id="bagBtn2" onclick="switchBag(2)">Гүнзгий<span class="bprice">₮9,900</span></button>
+      <button class="bag-btn" id="bagBtn3" onclick="switchBag(3)">Нууц<span class="bprice">₮19,900</span></button>
+    </div>
+    <div class="tabs" id="tabsRow"></div>
+    <p class="rlabel" id="rlabel"></p>
+    <div id="content"></div>
+    <button class="back-btn" onclick="showPage('home')">← Дахин уншуулах</button>
+  </div>
+</div>
+
+<!-- PAYMENT -->
+<div class="page" id="payment">
+  <p class="ptitle">Нууцыг <em>нээх</em></p>
+  <p style="font-size:0.78rem;color:#6b6480;">QPay уншуулаад зурхайгаа бүтнээр харна уу</p>
+  <div class="qrbox">
+    <canvas id="qrCanvas" width="160" height="160"></canvas>
+    <div class="qrlabel" id="qrlabel">QPay · Хувь-Заяа</div>
+  </div>
+  <p class="pinfo">Төлбөр хийсний дараа доорх товч дарж нэвтэрнэ үү</p>
+  <button class="gbtn2" onclick="unlockBag()">Төлбөр баталгаажуулах</button>
+  <div class="hr"></div>
+  <button class="pback" onclick="showPage('result')">← Буцах</button>
+</div>
+
+<script>
+// STARS
+for(let i=0;i<100;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*1.8+0.3;s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation:tw ${Math.random()*4+2}s ease-in-out infinite ${Math.random()*6}s;--op:${Math.random()*0.5+0.15}`;document.body.appendChild(s);}
+
+// STATE
+let gender='', userData={}, readings={}, activeBag=1, activeTab='fate', unlockedBags=[], payingBag=null;
+
+const BAG1=[{id:'fate',icon:'🌌',label:'Хувь заяа'},{id:'love',icon:'🌹',label:'Хосын зохицол'},{id:'career',icon:'⭐',label:'Ажил карьер'},{id:'luck',icon:'💫',label:'Аз хийморь'}];
+const BAG2=[{id:'lifecycle',icon:'🔄',label:'Амьдралын мөчлөг'},{id:'finance',icon:'💰',label:'Санхүүгийн зурхай'},{id:'health',icon:'🌿',label:'Эрүүл мэнд'},{id:'avoid',icon:'⚡',label:'Зайлсхийх зүйлс'}];
+const BAG3=[{id:'buyan',icon:'✨',label:'Буян хишиг дуудах'},{id:'sakhius',icon:'🛡',label:'Хамгаалагч сахиус'},{id:'danger',icon:'🌑',label:'Гай зовлон'},{id:'reincarnation',icon:'♾',label:'Өмнө ба дараа төрөл'}];
+const LABELS={fate:'✦ Таны хувь заяа',love:'✦ Хосын зохицол',career:'✦ Ажил карьер',luck:'✦ Аз хийморь',lifecycle:'✦ Амьдралын мөчлөг',finance:'✦ Санхүүгийн зурхай',health:'✦ Эрүүл мэнд',avoid:'✦ Зайлсхийх зүйлс',buyan:'✦ Буян хишиг дуудах',sakhius:'✦ Хамгаалагч сахиус',danger:'✦ Гай зовлон',reincarnation:'✦ Өмнө ба дараа төрөл'};
+const PRICES={1:'₮5,000',2:'₮9,900',3:'₮19,900'};
+
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);if(id==='payment')drawQR();}
+
+function selGender(btn,g){document.querySelectorAll('.gbtn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');gender=g;}
+
+function getMn(year){const a=['хулгана','үхэр','бар','туулай','луу','могой','морь','хонь','мич','тахиа','нохой','гахай'];const e=['Мод','Гал','Газар','Төмөр','Ус'];return{animal:a[((year-4)%12+12)%12],element:e[((Math.floor(((year-4)%10)/2))%5+5)%5]};}
+
+function getWs(m,d){m=parseInt(m);d=parseInt(d);if((m===12&&d>=22)||(m===1&&d<20))return{name:'Матарын орд',sym:'♑'};if((m===1&&d>=20)||(m===2&&d<19))return{name:'Хумхын орд',sym:'♒'};if((m===2&&d>=19)||(m===3&&d<20))return{name:'Загасны орд',sym:'♓'};if((m===3&&d>=20)||(m===4&&d<21))return{name:'Хонины орд',sym:'♈'};if((m===4&&d>=21)||(m===5&&d<21))return{name:'Үхрийн орд',sym:'♉'};if((m===5&&d>=21)||(m===6&&d<22))return{name:'Ихрийн орд',sym:'♊'};if((m===6&&d>=22)||(m===7&&d<23))return{name:'Мэлхийн орд',sym:'♋'};if((m===7&&d>=23)||(m===8&&d<23))return{name:'Арслангийн орд',sym:'♌'};if((m===8&&d>=23)||(m===9&&d<23))return{name:'Охины орд',sym:'♍'};if((m===9&&d>=23)||(m===10&&d<23))return{name:'Жинлүүрийн орд',sym:'♎'};if((m===10&&d>=23)||(m===11&&d<22))return{name:'Хилэнцийн орд',sym:'♏'};if((m===11&&d>=22)||(m===12&&d<22))return{name:'Нумын орд',sym:'♐'};return{name:'Матарын орд',sym:'♑'};}
+
+function buildSystem(type){const mn=userData.mongolian,ws=userData.western,g=userData.gender;const desc={fate:`Энэ хүний хувь заяа, амьдралын гол зорилгыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,love:`Хайр дурлалын замналыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,career:`Ажил карьерийн замыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,luck:`Одоогийн аз завшааныг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,lifecycle:`Амьдралын мөчлөгийг уншина. 4 үе шат: өсвөр нас, залуу нас, дунд нас, боловсролт нас. Тус бүр 1-2 өгүүлбэр. Заавал бүрэн дуусгаарай.`,finance:`Санхүүгийн замналыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,health:`Эрүүл мэндийн замналыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,avoid:`Зайлсхийх зүйлсийг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,buyan:`Буян хишгийг дуудах арга замыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,sakhius:`Хамгаалагч сахиусыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,danger:`Учирч болох гай зовлонг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`,reincarnation:`Өмнөх ба дараа төрлийн замналыг уншина. "Чи" гэж шууд хандаж яри. Жил, орд дурдахгүй.`};return `Чи бол Хувь-Заяа — нууцлаг зөнч. Монгол, Төвд зурхай, Астрологийн мэдлэгтэй.\nХэрэглэгчийн зурхай: ${mn.element} ${mn.animal}ын жил, ${ws.name} орд, ${g}.\nДаалгавар: ${desc[type]}\nДҮРЭМ:\n- Markdown огт хэрэглэхгүй\n- "Чи" гэж шууд хандана — жил, орд дурдахгүй\n- Товч, гүн — 3-4 өгүүлбэр\n- "AI" гэж хэзээ ч хэлэхгүй\n- Заавал бүрэн дуусгаарай`;}
+
+async function callClaude(system,msg){const res=await fetch('/api/zodiac',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system,messages:[{role:'user',content:msg}]})});const data=await res.json();if(data.content?.[0])return data.content[0].text.replace(/[#*_`]/g,'').trim();throw new Error('error');}
+
+function goChoose(){const y=document.getElementById('year').value,m=document.getElementById('month').value,d=document.getElementById('day').value;if(!y||!m||!d){alert('Төрсөн огноогоо бөглөнө үү.');return;}if(!gender){alert('Хүйсээ сонгоно уу.');return;}userData={year:y,month:m,day:d,gender,mongolian:getMn(parseInt(y)),western:getWs(m,d)};showPage('choose');}
+
+let loadInterval;
+async function beginReading(type){activeTab=type;activeBag=1;showPage('loading');const texts=['Одод уншиж байна...','Монгол зурхай тайлж байна...','Таны заяаны замыг нэгтгэж байна...','Нууцыг илчилж байна...'];let li=0;loadInterval=setInterval(()=>{li=(li+1)%texts.length;document.getElementById('loadingText').textContent=texts[li];},1500);try{const text=await callClaude(buildSystem(type),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${type} зурхайг уншиж өгнө үү.`);clearInterval(loadInterval);readings={[type]:text};renderResult();}catch(e){clearInterval(loadInterval);alert('Алдаа гарлаа.');showPage('choose');}}
+
+function renderResult(){document.getElementById('pills').innerHTML=`<span class="pill">${userData.mongolian.element} ${userData.mongolian.animal}</span><span class="pill">${userData.western.sym} ${userData.western.name}</span><span class="pill">${userData.year} он</span>`;[1,2,3].forEach(b=>{const btn=document.getElementById('bagBtn'+b);btn.className='bag-btn'+(activeBag===b?' active':'');});renderTabs();renderContent();showPage('result');}
+
+function renderTabs(){const tabs=activeBag===1?BAG1:activeBag===2?BAG2:BAG3;document.getElementById('tabsRow').innerHTML=tabs.map(t=>`<button class="tab${activeTab===t.id?' active':''}" onclick="clickTab('${t.id}')"><span class="ti">${t.icon}</span>${t.label}</button>`).join('');}
+
+function renderContent(){document.getElementById('rlabel').textContent=LABELS[activeTab];const locked=isLocked(activeTab);const cur=readings[activeTab];const el=document.getElementById('content');if(locked){el.innerHTML=`<div class="locked-wrap"><div class="locked-blur">Чиний заяаны нууц энд нуугдаж байна. Одод чиний замыг харж байна. Энэ хэсгийг нээхэд бэлэн үү? Чиний хайж буй хариулт энд байна...</div><div class="gate"><p class="gtitle">${activeBag===1?'Үлдсэн 3 зурхайг нээх':activeBag===2?'Гүнзгий уншилт нээх':'Нууц уншилт нээх'}</p><p class="gprice">${activeBag===1?'Хосын зохицол · Карьер · Аз хийморь':activeBag===2?'Амьдралын мөчлөг · Санхүү · Эрүүл мэнд · Зайлсхийх':'Буян · Сахиус · Гай зовлон · Дараа төрөл'}</p><button class="gbtn2" onclick="openPayment(${activeBag})">QPay-аар төлөх — ${PRICES[activeBag]}</button></div></div>`;}else if(cur==='__loading__'){el.innerHTML='<p class="rtext" style="color:#6b6480;font-style:italic">Уншиж байна...</p>';}else{let html=`<p class="rtext">${cur||''}</p>`;if(activeTab===BAG1[0].id&&!unlockedBags.includes(1)){html+=`<div class="locked-wrap"><div class="locked-blur">Хосын нийцлийн тооцоо таны хожим учрах хүний шинжийг илчлэнэ. Карьерийн шийдэх цаг ойртож байна...</div><div class="gate"><p class="gtitle">Үлдсэн 3 зурхайг<br>нээх үү?</p><p class="gprice">Хосын зохицол · Карьер · Аз хийморь</p><button class="gbtn2" onclick="openPayment(1)">QPay-аар төлөх — ₮5,000</button></div></div>`;}el.innerHTML=html;}}
+
+function isLocked(id){const b1=BAG1.map(t=>t.id);if(b1.includes(id))return id!==activeTab&&!unlockedBags.includes(1)||id===activeTab&&!unlockedBags.includes(1)&&!readings[id]&&id!==BAG1.find(t=>readings[t.id])?.id;const b2=BAG2.map(t=>t.id);if(b2.includes(id))return!unlockedBags.includes(2);return!unlockedBags.includes(3);}
+
+function clickTab(id){activeTab=id;if(!readings[id]&&!isLocked(id)){readings[id]='__loading__';renderContent();callClaude(buildSystem(id),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${id} зурхайг уншиж өгнө үү.`).then(t=>{readings[id]=t;if(activeTab===id)renderContent();}).catch(()=>{readings[id]='Алдаа гарлаа.';renderContent();});}else{renderContent();}renderTabs();}
+
+function switchBag(b){activeBag=b;const firstTab=b===1?BAG1[0].id:b===2?BAG2[0].id:BAG3[0].id;activeTab=firstTab;renderResult();}
+
+function openPayment(bag){payingBag=bag;document.getElementById('qrlabel').textContent=`QPay · Хувь-Заяа · ${PRICES[bag]}`;showPage('payment');}
+
+async function unlockBag(){unlockedBags.push(payingBag);activeBag=payingBag;const tabs=payingBag===1?BAG1.slice(1):payingBag===2?BAG2:BAG3;activeTab=tabs[0].id;showPage('loading');document.getElementById('loadingText').textContent='Зурхай нэгтгэж байна...';for(const t of tabs){if(!readings[t.id]){try{readings[t.id]=await callClaude(buildSystem(t.id),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${t.id} зурхайг уншиж өгнө үү.`);}catch(e){readings[t.id]='Алдаа гарлаа.';}}}renderResult();}
+
+// QR
+function drawQR(){const c=document.getElementById('qrCanvas'),ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,160,160);const cells=21,cell=160/cells;const fin=(x,y)=>{ctx.fillStyle='#000';ctx.fillRect(x*cell,y*cell,7*cell,7*cell);ctx.fillStyle='#fff';ctx.fillRect((x+1)*cell,(y+1)*cell,5*cell,5*cell);ctx.fillStyle='#000';ctx.fillRect((x+2)*cell,(y+2)*cell,3*cell,3*cell);};fin(0,0);fin(14,0);fin(0,14);for(let r=0;r<cells;r++)for(let cc=0;cc<cells;cc++){const inF=(r<8&&cc<8)||(r<8&&cc>=13)||(r>=13&&cc<8);if(!inF){const v=((r*cells+cc*1664525+1013904223)&0xffffffff)/0xffffffff;if(v>0.5){ctx.fillStyle='#000';ctx.fillRect(cc*cell,r*cell,cell,cell);}}}}
+</script>
+</body>
+</html>
