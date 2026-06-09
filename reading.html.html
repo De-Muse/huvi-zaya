@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Зурхайлуулах — Хувь-Заяа</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #05040a; --star: #e8dfc8; --gold: #c8a96e;
+  --gold-dim: #8a6e3e; --violet-glow: #a67fd4; --mist: #6e6888;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--void); color:var(--star); font-family:'Jost',sans-serif; font-weight:300; min-height:100vh; }
+#cosmos-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+nav { position:relative; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:1.4rem 3rem; border-bottom:1px solid rgba(200,169,110,0.1); background:rgba(5,4,10,0.9); }
+.logo { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:300; letter-spacing:0.15em; color:var(--gold); text-decoration:none; }
+.logo span { color:var(--violet-glow); }
+.back-link { font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--mist); text-decoration:none; }
+.back-link:hover { color:var(--gold); }
+main { position:relative; z-index:1; max-width:860px; margin:0 auto; padding:4rem 2rem 6rem; }
+
+/* LOADING */
+.loading-state { text-align:center; padding:6rem 2rem; }
+.loading-orb { width:100px; height:100px; border-radius:50%; background:radial-gradient(circle at 35% 35%, rgba(200,169,110,0.4), rgba(123,94,167,0.6)); margin:0 auto 2rem; animation:loadPulse 2s ease-in-out infinite; box-shadow:0 0 40px rgba(123,94,167,0.3); }
+@keyframes loadPulse { 0%,100%{transform:scale(1);opacity:0.7} 50%{transform:scale(1.1);opacity:1} }
+.loading-text { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.4rem; color:var(--gold); margin-bottom:0.5rem; }
+.loading-sub { font-size:0.78rem; color:var(--mist); }
+
+/* RESULTS */
+.results { display:none; }
+.results.show { display:block; }
+.result-header { display:flex; align-items:center; gap:1.5rem; margin-bottom:3rem; padding-bottom:2rem; border-bottom:1px solid rgba(200,169,110,0.1); }
+.result-orb { width:70px; height:70px; border-radius:50%; flex-shrink:0; background:radial-gradient(circle at 35% 35%, rgba(200,169,110,0.5), rgba(123,94,167,0.7)); display:flex; align-items:center; justify-content:center; font-size:2rem; box-shadow:0 0 30px rgba(123,94,167,0.3); }
+.result-meta-title { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300; color:var(--star); margin-bottom:0.3rem; }
+.result-meta-sub { font-size:0.78rem; color:var(--gold-dim); letter-spacing:0.1em; }
+.section-label { font-size:0.65rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--violet-glow); margin-bottom:0.7rem; }
+.info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:1px; background:rgba(200,169,110,0.08); border:1px solid rgba(200,169,110,0.08); margin-bottom:2rem; }
+.info-item { background:var(--void); padding:1.2rem 1rem; text-align:center; }
+.info-label { font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--mist); margin-bottom:0.4rem; }
+.info-value { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:400; color:var(--gold); }
+.reading-card { border:1px solid rgba(200,169,110,0.12); background:rgba(13,11,24,0.6); padding:2rem; margin-bottom:1.5rem; position:relative; }
+.reading-title { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:400; color:var(--star); margin-bottom:1rem; }
+.reading-free-text { font-size:0.88rem; line-height:2; color:rgba(232,223,200,0.7); margin-bottom:1.5rem; }
+.blur-wrap { position:relative; }
+.blur-text { font-size:0.88rem; line-height:2; color:rgba(232,223,200,0.7); filter:blur(5px); user-select:none; pointer-events:none; }
+.blur-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem; background:linear-gradient(to bottom, rgba(5,4,10,0) 0%, rgba(5,4,10,0.97) 50%); }
+.lock-icon { font-size:1.8rem; }
+.lock-text { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-style:italic; color:var(--star); text-align:center; line-height:1.6; }
+.lock-sub { font-size:0.75rem; color:var(--mist); text-align:center; }
+.btn-unlock { background:var(--gold); color:var(--void); border:none; padding:0.8rem 2rem; font-family:'Jost',sans-serif; font-size:0.78rem; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:background 0.2s; }
+.btn-unlock:hover { background:var(--violet-glow); }
+.error-state { text-align:center; padding:4rem 2rem; }
+.error-title { font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--gold); margin-bottom:1rem; }
+.error-btn { background:var(--gold); color:var(--void); border:none; padding:0.8rem 2rem; font-family:'Jost',sans-serif; font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; margin-top:1rem; }
+</style>
+</head>
+<body>
+<canvas id="cosmos-canvas"></canvas>
+<nav>
+  <a href="index.html" class="logo">Хувь<span>·</span>Заяа</a>
+  <a href="index.html" class="back-link">← Буцах</a>
+</nav>
+<main>
+  <div class="loading-state" id="loadingState">
+    <div class="loading-orb"></div>
+    <p class="loading-text" id="loadingText">Одод уншиж байна...</p>
+    <p class="loading-sub">Монгол, Төвд зурхай болон Астрологийг нэгтгэж байна</p>
+  </div>
+
+  <div class="results" id="resultsSection">
+    <div class="result-header">
+      <div class="result-orb" id="resultOrb">🌌</div>
+      <div>
+        <div class="result-meta-title" id="resultTitle">Таны зурхай</div>
+        <div class="result-meta-sub" id="resultSub"></div>
+      </div>
+    </div>
+    <div style="margin-bottom:2rem;">
+      <p class="section-label">✦ Үнэгүй — Таны үндсэн мэдээлэл</p>
+      <div class="info-grid" id="infoGrid"></div>
+    </div>
+    <div class="reading-card">
+      <div class="reading-title" id="freeTitle">🌟 Таны зурхай</div>
+      <div class="reading-free-text" id="freeText"></div>
+      <div class="blur-wrap">
+        <div class="blur-text" id="blurText">Таны хийморь гал морь мэт давхидаг. Энэ амьдралд таны гол сорилт бол тэр хүчийг нэг зорилгод чиглүүлэх явдал юм. Одод таны хувьд энэ үед шинэ эхлэлийн боломж нээгдэж байгааг харуулж байна...</div>
+        <div class="blur-overlay">
+          <span class="lock-icon">🔮</span>
+          <p class="lock-text">Бүтэн уншилт үзэхийг<br>хүсч байна уу?</p>
+          <p class="lock-sub">Карьер · Хайр · Хийморь · Амьдралын зам</p>
+          <a href="payment.html" class="btn-unlock">Нээх — ₮14,900</a>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2rem;">
+      <a href="index.html" style="background:transparent;border:1px solid rgba(200,169,110,0.2);color:var(--mist);padding:0.7rem 1.5rem;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-block;">← Дахин уншуулах</a>
+    </div>
+  </div>
+
+  <div class="error-state" id="errorState" style="display:none;">
+    <p class="error-title">Алдаа гарлаа</p>
+    <p style="color:var(--mist);font-size:0.85rem;">Мэдээлэл дутуу байна. Буцаж мэдээллээ оруулна уу.</p>
+    <a href="index.html" class="error-btn">← Буцах</a>
+  </div>
+</main>
+
+<script>
+// Stars
+const canvas = document.getElementById('cosmos-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, stars = [];
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function initStars() { stars=[]; for(let i=0;i<150;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.2,op:Math.random()*0.5+0.1,speed:Math.random()*0.4+0.1,phase:Math.random()*Math.PI*2}); }
+let t=0;
+function draw() { ctx.clearRect(0,0,W,H); stars.forEach(s=>{ const f=Math.sin(t*s.speed+s.phase)*0.3+0.7; ctx.globalAlpha=s.op*f; ctx.fillStyle='#e8dfc8'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); }); ctx.globalAlpha=1; t+=0.01; requestAnimationFrame(draw); }
+resize(); initStars(); draw();
+window.addEventListener('resize',()=>{resize();initStars();});
+
+function getMongolianZodiac(year) {
+  const animals=['хулгана','үхэр','бар','туулай','луу','могой','морь','хонь','мич','тахиа','нохой','гахай'];
+  const elementNames=['Мод','Гал','Газар','Төмөр','Ус'];
+  const idx=(year-4)%12;
+  const elIdx=Math.floor(((year-4)%10)/2);
+  return { animal:animals[((idx%12)+12)%12], element:elementNames[((elIdx%5)+5)%5] };
+}
+
+function getWesternZodiac(month,day) {
+  const signs=[[1,20,'Бухын орд','♑'],[2,19,'Усны орд','♒'],[3,20,'Загасны орд','♓'],[4,20,'Хурганы орд','♈'],[5,21,'Үхрийн орд','♉'],[6,21,'Ихрийн орд','♊'],[7,23,'Бүргэдийн орд','♋'],[8,23,'Арслангийн орд','♌'],[9,23,'Эгшигтийн орд','♍'],[10,23,'Жанчивын орд','♎'],[11,22,'Хилэнцийн орд','♏'],[12,22,'Нумын орд','♐']];
+  const m=parseInt(month),d=parseInt(day);
+  for(let i=0;i<signs.length;i++){const[sm,sd,name,sym]=signs[i];if(m===sm&&d>=sd)return{name,sym};if(m===(sm%12)+1&&d<sd)return{name:signs[(i-1+12)%12][2],sym:signs[(i-1+12)%12][3]};}
+  return{name:'Бухын орд',sym:'♑'};
+}
+
+async function loadReading() {
+  const p = new URLSearchParams(window.location.search);
+  const year = p.get('year'), month = p.get('month'), day = p.get('day'), gender = p.get('gender') || 'эрэгтэй';
+
+  if (!year || !month || !day) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    return;
+  }
+
+  const mongolian = getMongolianZodiac(parseInt(year));
+  const western = getWesternZodiac(parseInt(month), parseInt(day));
+
+  const loadingTexts = ['Монгол зурхай уншиж байна...','Төвд зурхайтай нэгтгэж байна...','Одод таны замыг харж байна...','Заяаны утсыг уншиж байна...'];
+  let li = 0;
+  const loadInterval = setInterval(() => { li=(li+1)%loadingTexts.length; document.getElementById('loadingText').textContent=loadingTexts[li]; }, 1500);
+
+  const systemPrompt = `Чи бол Хувь-Заяа — Монгол зурхай, Төвд зурхай, Баруун Астрологийн гурван мэдлэгийг нэгтгэсэн нууцлаг зөнч.
+
+Хэрэглэгчийн мэдээлэл:
+- Монгол зурхай: ${mongolian.element} ${mongolian.animal}ын жил
+- Баруун орд: ${western.name} ${western.sym}
+- Хүйс: ${gender}
+
+Зурхай унших заавар:
+1. ${mongolian.element} ${mongolian.animal}ын хүний ГУРВАН сайн чанарыг уран сайхны хэлээр магт. "Гал морь мэт давхина" гэх зүйрлэл ашигла.
+2. Баруун Астрологийн ${western.name} ордын онцлогийг нэмж тайлбарла.
+3. Одоогийн хийморь аз байдлыг хэл.
+4. Анхаарах зүйлсийг нэрлэ.
+
+ЧУХАЛ: Монгол уран сайхны хэл ашигла. "Хийморь", "заяа", "хишиг", "буян" гэх үгс хэрэглэ. Хэзээ ч "AI" гэж нэрлэхгүй. Хариулт гүн утгатай, уран сайхны байна. Эхний 2 өгүүлбэр хамгийн хүчтэй байх хэрэгтэй.`;
+
+  try {
+    const response = await fetch('/api/zodiac', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: systemPrompt, messages: [{ role: 'user', content: `Миний төрсөн он: ${year}, сар: ${month}, өдөр: ${day}. Зурхайг уншиж өгнө үү.` }] })
+    });
+
+    const data = await response.json();
+    clearInterval(loadInterval);
+
+    if (data.content && data.content[0]) {
+      const fullText = data.content[0].text;
+      const sentences = fullText.match(/[^.!?]+[.!?]+/g) || [fullText];
+      const freeText = sentences.slice(0, 2).join(' ');
+      const blurText = sentences.slice(2).join(' ');
+
+      document.getElementById('infoGrid').innerHTML = `
+        <div class="info-item"><div class="info-label">Жил</div><div class="info-value">${mongolian.animal.charAt(0).toUpperCase()+mongolian.animal.slice(1)}</div></div>
+        <div class="info-item"><div class="info-label">Элемент</div><div class="info-value">${mongolian.element}</div></div>
+        <div class="info-item"><div class="info-label">Орд</div><div class="info-value">${western.sym} ${western.name.split(' ')[0]}</div></div>
+        <div class="info-item"><div class="info-label">Хүйс</div><div class="info-value">${gender === 'эрэгтэй' ? '👨' : '👩'}</div></div>`;
+
+      document.getElementById('resultOrb').textContent = '🌌';
+      document.getElementById('resultTitle').textContent = `${mongolian.element} ${mongolian.animal}ын хүн`;
+      document.getElementById('resultSub').textContent = `${year} он · ${western.name} · Хувь Заяа`;
+      document.getElementById('freeTitle').textContent = '🌌 Таны хувь заяа';
+      document.getElementById('freeText').textContent = freeText;
+      if (blurText) document.getElementById('blurText').textContent = blurText;
+
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('resultsSection').classList.add('show');
+    }
+  } catch (err) {
+    clearInterval(loadInterval);
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+  }
+}
+
+loadReading();
+</script>
+</body>
+</html>
