@@ -1424,6 +1424,15 @@ const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('on'); });
 }, { threshold: 0.12 });
 reveals.forEach(r => observer.observe(r));
+  const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('year') && urlParams.get('month') && urlParams.get('day')) {
+  document.getElementById('birthYear').value = urlParams.get('year');
+  document.getElementById('birthMonth').value = urlParams.get('month');
+  document.getElementById('birthDay').value = urlParams.get('day');
+  if (urlParams.get('gender')) document.getElementById('gender').value = urlParams.get('gender');
+  document.getElementById('formSection').style.display = 'none';
+  setTimeout(() => generateReading(), 300);
+}
 </script>
 </body>
 </html>
