@@ -1,1267 +1,525 @@
-<!DOCTYPE html>
-<html lang="mn">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Хувь-Заяа — Таны заяаны зам</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
-<style>
-:root {
-  --void: #05040a;
-  --deep: #0d0b18;
-  --cosmos: #12102a;
-  --nebula: #1e1a3a;
-  --star: #e8dfc8;
-  --gold: #c8a96e;
-  --gold-dim: #8a6e3e;
-  --violet: #7b5ea7;
-  --violet-glow: #a67fd4;
-  --mist: #6e6888;
-  --white-soft: rgba(232,223,200,0.85);
-}
-
-* { margin:0; padding:0; box-sizing:border-box; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--void);
-  color: var(--star);
-  font-family: 'Jost', sans-serif;
-  font-weight: 300;
-  overflow-x: hidden;
-}
-
-/* ── CANVAS STARS ── */
-#cosmos-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* ── NAV ── */
-nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 50;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.4rem 3rem;
-  background: linear-gradient(to bottom, rgba(5,4,10,0.9) 0%, transparent 100%);
-}
-
-.logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.5rem;
-  font-weight: 300;
-  letter-spacing: 0.15em;
-  color: var(--gold);
-}
-
-.logo span {
-  color: var(--violet-glow);
-}
-
-.nav-links {
-  display: flex;
-  gap: 2.5rem;
-  list-style: none;
-}
-
-.nav-links a {
-  font-size: 0.78rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--mist);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-.nav-links a:hover { color: var(--gold); }
-
-.nav-cta {
-  font-size: 0.78rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--void) !important;
-  background: var(--gold);
-  padding: 0.55rem 1.4rem !important;
-  transition: background 0.3s !important;
-}
-.nav-cta:hover { background: var(--violet-glow) !important; color: var(--void) !important; }
-
-/* ── HERO ── */
-.hero {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 8rem 2rem 4rem;
-}
-
-.hero-orb {
-  position: relative;
-  width: 220px;
-  height: 220px;
-  margin: 0 auto 3.5rem;
-}
-
-.orb-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px solid rgba(167,127,212,0.2);
-  animation: orbRing 8s linear infinite;
-}
-
-.orb-ring:nth-child(2) {
-  inset: -20px;
-  border-color: rgba(200,169,110,0.1);
-  animation-duration: 12s;
-  animation-direction: reverse;
-}
-
-.orb-ring:nth-child(3) {
-  inset: -40px;
-  border-color: rgba(167,127,212,0.05);
-  animation-duration: 20s;
-}
-
-@keyframes orbRing {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.orb-core {
-  position: absolute;
-  inset: 20px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 35%,
-    rgba(200,169,110,0.4),
-    rgba(123,94,167,0.6) 40%,
-    rgba(13,11,24,0.9) 75%
-  );
-  box-shadow:
-    0 0 40px rgba(123,94,167,0.3),
-    0 0 80px rgba(123,94,167,0.1),
-    inset 0 0 30px rgba(200,169,110,0.1);
-  animation: orbFloat 6s ease-in-out infinite;
-}
-
-.orb-baby {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 4rem;
-  filter: drop-shadow(0 0 20px rgba(200,169,110,0.5));
-  animation: orbFloat 6s ease-in-out infinite;
-}
-
-@keyframes orbFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.hero-eyebrow {
-  font-size: 0.72rem;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: var(--violet-glow);
-  margin-bottom: 1.4rem;
-  opacity: 0;
-  animation: fadeUp 1s ease forwards 0.4s;
-}
-
-.hero-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(4rem, 9vw, 8rem);
-  font-weight: 300;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  color: var(--star);
-  margin-bottom: 1rem;
-  opacity: 0;
-  animation: fadeUp 1s ease forwards 0.6s;
-}
-
-.hero-title em {
-  font-style: italic;
-  color: var(--gold);
-}
-
-.hero-sub {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 1.3rem;
-  font-weight: 300;
-  color: var(--mist);
-  margin-bottom: 2.5rem;
-  letter-spacing: 0.05em;
-  opacity: 0;
-  animation: fadeUp 1s ease forwards 0.8s;
-}
-
-.hero-desc {
-  max-width: 440px;
-  font-size: 0.9rem;
-  line-height: 2;
-  color: rgba(232,223,200,0.5);
-  margin-bottom: 3.5rem;
-  opacity: 0;
-  animation: fadeUp 1s ease forwards 1s;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  opacity: 0;
-  animation: fadeUp 1s ease forwards 1.2s;
-}
-
-.btn-gold {
-  background: var(--gold);
-  color: var(--void);
-  border: none;
-  padding: 1rem 2.8rem;
-  font-family: 'Jost', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 400;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.3s;
-}
-.btn-gold:hover {
-  background: var(--violet-glow);
-  transform: translateY(-2px);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--star);
-  border: 1px solid rgba(232,223,200,0.2);
-  padding: 1rem 2.8rem;
-  font-family: 'Jost', sans-serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.3s;
-}
-.btn-ghost:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-@keyframes fadeUp {
-  from { opacity:0; transform: translateY(25px); }
-  to { opacity:1; transform: translateY(0); }
-}
-
-/* ── HERO FORM ── */
-.hero-form {
-  width: 100%;
-  max-width: 560px;
-  margin: 0 auto 2rem;
-  background: rgba(10,8,20,0.8);
-  border: 1px solid rgba(200,169,110,0.15);
-  backdrop-filter: blur(12px);
-  padding: 2rem;
-}
-
-.hf-label {
-  display: block;
-  font-size: 0.65rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--mist);
-  margin-bottom: 0.8rem;
-}
-
-.hf-label-note {
-  font-size: 0.6rem;
-  color: var(--violet-glow);
-  letter-spacing: 0.1em;
-  font-style: italic;
-}
-
-.hf-row { margin-bottom: 1.5rem; }
-
-/* Он Сар Өдөр - гурван input хажуу хажуугаар */
-.hf-date-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.hf-date-field input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(200,169,110,0.2);
-  color: var(--star);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2rem;
-  font-weight: 300;
-  text-align: center;
-  outline: none;
-  padding: 0.2rem 0;
-  transition: border-color 0.2s;
-}
-.hf-date-field input:focus { border-color: rgba(200,169,110,0.5); }
-.hf-date-field input::placeholder { color: rgba(200,169,110,0.2); }
-
-/* Хүйс */
-.hf-gender-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
-  margin-bottom: 1.5rem;
-}
-.hf-gender-btn {
-  padding: 0.8rem;
-  border: 1px solid rgba(200,169,110,0.18);
-  background: transparent;
-  color: rgba(232,223,200,0.5);
-  font-family: 'Jost', sans-serif;
-  font-size: 0.82rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.hf-gender-btn:hover { border-color: var(--gold); color: var(--gold); }
-.hf-gender-btn.sel { border-color: var(--gold); background: rgba(200,169,110,0.08); color: var(--gold); }
-
-/* Нэр */
-.hf-name-input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(200,169,110,0.2);
-  color: var(--star);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.5rem;
-  font-weight: 300;
-  outline: none;
-  padding: 0.3rem 0;
-  transition: border-color 0.2s;
-}
-.hf-name-input:focus { border-color: rgba(200,169,110,0.5); }
-.hf-name-input::placeholder { color: rgba(110,104,136,0.35); font-style: italic; }
-
-/* Submit */
-.hf-btn {
-  width: 100%;
-  background: rgba(200,169,110,0.15);
-  border: 1px solid rgba(200,169,110,0.3);
-  color: var(--gold);
-  font-family: 'Jost', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 400;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.25s;
-  margin-top: 0.5rem;
-}
-.hf-btn:hover { background: var(--gold); color: var(--void); }
-
-/* ── SCROLL INDICATOR ── */
-.scroll-hint {
-  position: absolute;
-  bottom: 2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  opacity: 0;
-  animation: fadeUp 1s ease forwards 1.8s;
-}
-.scroll-line {
-  width: 1px;
-  height: 50px;
-  background: linear-gradient(to bottom, var(--gold), transparent);
-  animation: scrollPulse 2s ease-in-out infinite;
-}
-@keyframes scrollPulse {
-  0%,100%{opacity:0.3;height:50px}
-  50%{opacity:1;height:70px}
-}
-.scroll-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-}
-
-/* ── DIVIDER ── */
-.divider {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 0 3rem;
-  margin: 0 auto;
-  max-width: 900px;
-}
-.divider-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(200,169,110,0.2), transparent);
-}
-.divider-glyph {
-  color: var(--gold-dim);
-  font-size: 0.6rem;
-  letter-spacing: 0.5rem;
-}
-
-/* ── SECTIONS ── */
-section {
-  position: relative;
-  z-index: 1;
-  padding: 7rem 2rem;
-}
-
-.section-inner {
-  max-width: 1080px;
-  margin: 0 auto;
-}
-
-.section-eyebrow {
-  font-size: 0.68rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--violet-glow);
-  margin-bottom: 1rem;
-}
-
-.section-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(2.2rem, 4vw, 3.5rem);
-  font-weight: 300;
-  line-height: 1.15;
-  color: var(--star);
-  margin-bottom: 1.5rem;
-}
-
-.section-title em {
-  font-style: italic;
-  color: var(--gold);
-}
-
-.gold-rule {
-  width: 40px;
-  height: 1px;
-  background: var(--gold);
-  margin-bottom: 3rem;
-  opacity: 0.5;
-}
-
-/* ── HOW IT WORKS ── */
-.steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0;
-  margin-top: 4rem;
-  border: 1px solid rgba(200,169,110,0.1);
-}
-
-.step {
-  padding: 2.5rem 2rem;
-  border-right: 1px solid rgba(200,169,110,0.1);
-  transition: background 0.3s;
-}
-.step:last-child { border-right: none; }
-.step:hover { background: rgba(123,94,167,0.05); }
-
-.step-num {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 3.5rem;
-  font-weight: 300;
-  color: rgba(200,169,110,0.15);
-  line-height: 1;
-  margin-bottom: 1rem;
-}
-
-.step-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.2rem;
-  font-weight: 400;
-  color: var(--star);
-  margin-bottom: 0.7rem;
-}
-
-.step-desc {
-  font-size: 0.82rem;
-  line-height: 1.9;
-  color: rgba(232,223,200,0.45);
-}
-
-/* ── CATEGORIES ── */
-.categories {
-  background: rgba(13,11,24,0.6);
-  border-top: 1px solid rgba(200,169,110,0.08);
-  border-bottom: 1px solid rgba(200,169,110,0.08);
-}
-
-.cat-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-top: 4rem;
-}
-
-@media (max-width: 640px) {
-  .cat-grid { grid-template-columns: 1fr; }
-  nav { padding: 1rem 1.5rem; }
-  .nav-links { display: none; }
-}
-
-.cat-card {
-  border: 1px solid rgba(200,169,110,0.12);
-  padding: 2.5rem;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-decoration: none;
-  display: block;
-  background: rgba(5,4,10,0.4);
-}
-
-.cat-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--gold), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.cat-card:hover {
-  border-color: rgba(200,169,110,0.3);
-  background: rgba(123,94,167,0.06);
-  transform: translateY(-3px);
-}
-.cat-card:hover::before { opacity: 1; }
-
-.cat-glyph {
-  font-size: 2.2rem;
-  margin-bottom: 1.2rem;
-  display: block;
-}
-
-.cat-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.5rem;
-  font-weight: 400;
-  color: var(--star);
-  margin-bottom: 0.5rem;
-}
-
-.cat-sub {
-  font-size: 0.78rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-  margin-bottom: 1rem;
-}
-
-.cat-desc {
-  font-size: 0.83rem;
-  line-height: 1.9;
-  color: rgba(232,223,200,0.45);
-  margin-bottom: 1.5rem;
-}
-
-.cat-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.cat-tag {
-  font-size: 0.7rem;
-  padding: 0.25rem 0.7rem;
-  border: 1px solid rgba(200,169,110,0.15);
-  color: var(--gold-dim);
-  border-radius: 20px;
-}
-
-.cat-arrow {
-  position: absolute;
-  bottom: 2rem;
-  right: 2rem;
-  color: var(--gold-dim);
-  font-size: 1.2rem;
-  transition: transform 0.3s;
-}
-.cat-card:hover .cat-arrow { transform: translate(4px, -4px); }
-
-/* ── PREVIEW SECTION ── */
-.preview-wrap {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5rem;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .preview-wrap { grid-template-columns: 1fr; }
-  .cat-grid { grid-template-columns: 1fr; }
-}
-
-.preview-card {
-  border: 1px solid rgba(200,169,110,0.15);
-  background: rgba(13,11,24,0.8);
-  padding: 2.5rem;
-  position: relative;
-}
-
-.preview-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--void);
-  background: var(--gold);
-  padding: 0.3rem 0.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.preview-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.6rem;
-  font-weight: 400;
-  color: var(--star);
-  margin-bottom: 1rem;
-}
-
-.preview-text {
-  font-size: 0.85rem;
-  line-height: 1.9;
-  color: rgba(232,223,200,0.65);
-  margin-bottom: 1.5rem;
-}
-
-.preview-blur-wrap {
-  position: relative;
-}
-
-.preview-blur-text {
-  font-size: 0.85rem;
-  line-height: 1.9;
-  color: rgba(232,223,200,0.65);
-  filter: blur(4px);
-  user-select: none;
-}
-
-.preview-unlock {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  background: linear-gradient(to bottom, transparent, rgba(13,11,24,0.95));
-}
-
-.unlock-icon { font-size: 1.5rem; }
-
-.unlock-text {
-  font-size: 0.78rem;
-  color: var(--gold);
-  letter-spacing: 0.1em;
-  text-align: center;
-}
-
-/* ── PRICING ── */
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-top: 4rem;
-}
-
-.price-card {
-  border: 1px solid rgba(200,169,110,0.15);
-  padding: 2.5rem 2rem;
-  background: rgba(5,4,10,0.5);
-  position: relative;
-  transition: border-color 0.3s;
-}
-.price-card:hover { border-color: rgba(200,169,110,0.35); }
-
-.price-card.featured {
-  border-color: var(--gold);
-  background: rgba(200,169,110,0.04);
-}
-
-.price-top {
-  position: absolute;
-  top: -1px; left: 50%;
-  transform: translateX(-50%);
-  background: var(--gold);
-  color: var(--void);
-  font-size: 0.62rem;
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 0.25rem 1rem;
-  white-space: nowrap;
-}
-
-.price-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.4rem;
-  color: var(--star);
-  margin-bottom: 0.4rem;
-}
-
-.price-tagline {
-  font-size: 0.78rem;
-  color: var(--mist);
-  margin-bottom: 2rem;
-  line-height: 1.6;
-}
-
-.price-amount {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 3rem;
-  font-weight: 300;
-  color: var(--gold);
-  line-height: 1;
-  margin-bottom: 0.2rem;
-}
-
-.price-unit {
-  font-size: 0.72rem;
-  color: var(--mist);
-  letter-spacing: 0.1em;
-  margin-bottom: 2rem;
-}
-
-.price-list {
-  list-style: none;
-  margin-bottom: 2.5rem;
-}
-
-.price-list li {
-  font-size: 0.82rem;
-  color: rgba(232,223,200,0.6);
-  padding: 0.6rem 0;
-  border-bottom: 1px solid rgba(200,169,110,0.06);
-  display: flex;
-  gap: 0.7rem;
-  align-items: flex-start;
-  line-height: 1.5;
-}
-
-.price-list li::before {
-  content: '✦';
-  color: var(--gold);
-  font-size: 0.55rem;
-  flex-shrink: 0;
-  margin-top: 0.3rem;
-}
-
-/* ── TESTIMONIALS ── */
-.testi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2rem;
-  margin-top: 4rem;
-}
-
-.testi {
-  padding: 2rem;
-  border-left: 1px solid rgba(200,169,110,0.2);
-  background: rgba(13,11,24,0.4);
-}
-
-.testi-text {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 1.05rem;
-  font-weight: 300;
-  line-height: 1.8;
-  color: rgba(232,223,200,0.7);
-  margin-bottom: 1.2rem;
-}
-
-.testi-name {
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold-dim);
-}
-
-/* ── FOOTER ── */
-footer {
-  position: relative;
-  z-index: 1;
-  border-top: 1px solid rgba(200,169,110,0.1);
-  padding: 4rem 3rem 3rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: end;
-  max-width: 1080px;
-  margin: 0 auto;
-}
-
-.footer-brand .logo { font-size: 2rem; margin-bottom: 0.8rem; }
-.footer-tagline {
-  font-size: 0.78rem;
-  color: var(--mist);
-  line-height: 1.8;
-  max-width: 280px;
-}
-
-.footer-copy {
-  font-size: 0.72rem;
-  color: rgba(110,104,136,0.5);
-  text-align: right;
-  line-height: 1.8;
-}
-
-/* ── REVEAL ── */
-.reveal {
-  opacity: 0;
-  transform: translateY(25px);
-  transition: opacity 0.9s ease, transform 0.9s ease;
-}
-.reveal.on { opacity: 1; transform: translateY(0); }
-</style>
-</head>
-<body>
-
-<canvas id="cosmos-canvas"></canvas>
-
-<nav>
-  <div class="logo">Хувь<span>·</span>Заяа</div>
-  <ul class="nav-links">
-    <li><a href="#categories">Зурхай</a></li>
-    <li><a href="#how">Хэрхэн</a></li>
-    <li><a href="#pricing">Үнэ</a></li>
-    <li><a href="reading.html" class="nav-cta">Зурхайлуулах</a></li>
-  </ul>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-orb">
-    <div class="orb-ring"></div>
-    <div class="orb-ring"></div>
-    <div class="orb-ring"></div>
-    <div class="orb-core"></div>
-    <div class="orb-baby">🌟</div>
-  </div>
-
-  <p class="hero-eyebrow">Монгол · Төвд · Астрологи</p>
-  <h1 class="hero-title">Хувь<br><em>Заяа</em></h1>
-  <p class="hero-sub">Чи төрөхдөө өөрийн одыг дагуулж ирсэн</p>
-  <p class="hero-desc">
-    Гурван эртний мэдлэгийг нэгтгэн таны заяаны замыг уншина.
-    Монгол зурхай, Төвд зурхай, Баруун Астрологи —
-    гурав хосолмол, нэг хариулт.
-  </p>
-
-  <!-- HERO FORM -->
-  <div class="hero-form" style="opacity:0;animation:fadeUp 1s ease forwards 1.1s;">
-
-    <label class="hf-label">Төрсөн огноо</label>
-    <div class="hf-date-row">
-      <div class="hf-date-field">
-        <input id="hYear" type="number" placeholder="1995" min="1920" max="2024" inputmode="numeric">
-      </div>
-      <div class="hf-date-field">
-        <input id="hMonth" type="number" placeholder="03" min="1" max="12" inputmode="numeric">
-      </div>
-      <div class="hf-date-field">
-        <input id="hDay" type="number" placeholder="15" min="1" max="31" inputmode="numeric">
-      </div>
-    </div>
-
-    <label class="hf-label">Хүйс</label>
-    <div class="hf-gender-row">
-      <button class="hf-gender-btn" onclick="selGender(this,'эрэгтэй')">Эрэгтэй</button>
-      <button class="hf-gender-btn" onclick="selGender(this,'эмэгтэй')">Эмэгтэй</button>
-    </div>
-
-    <div class="hf-row">
-      <label class="hf-label">Таны нэр <span class="hf-label-note">· заавал биш</span></label>
-      <input class="hf-name-input" id="hName" type="text" placeholder="Жишээ: Сараа" autocomplete="off">
-    </div>
-
-    <button class="hf-btn" onclick="goToReading()">Нууцыг тайлах</button>
-  </div>
-
-  <div class="scroll-hint">
-    <div class="scroll-line"></div>
-    <span class="scroll-label">Үргэлжлүүлэх</span>
-  </div>
-</section>
-
-<div class="divider"><div class="divider-line"></div><span class="divider-glyph">✦ ✦ ✦</span><div class="divider-line"></div></div>
-
-<!-- HOW IT WORKS -->
-<section id="how">
-  <div class="section-inner">
-    <div class="reveal">
-      <p class="section-eyebrow">Хэрхэн ажилладаг вэ</p>
-      <h2 class="section-title">Гурван алхам,<br><em>нэг заяа</em></h2>
-      <div class="gold-rule"></div>
-    </div>
-    <div class="steps reveal">
-      <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-title">Мэдээлэл оруул</div>
-        <div class="step-desc">Төрсөн он, сар, өдөр, цагаа оруулна. Хэдий нарийн мэдээлэл оруулна, тэдий гүн уншилт гарна.</div>
-      </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-title">Зурхай гарна</div>
-        <div class="step-desc">Монгол, Төвд, Астрологийн гурван системээр таны хувь заяаг нэгтгэн тайлбарлана.</div>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-title">Гүн уншилт</div>
-        <div class="step-desc">Төлбөрийн эрхтэй бол амьдралын зам, насны үе шат бүрийн зурхайг бүтэн уншина.</div>
-      </div>
-      <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-title">Асуулт тавь</div>
-        <div class="step-desc">Зурхайн талаар нэмэлт асуулт байвал гурван зурхайн мэдлэгээр хариулт авна.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"><div class="divider-line"></div><span class="divider-glyph">✦ ✦ ✦</span><div class="divider-line"></div></div>
-
-<!-- CATEGORIES -->
-<section id="categories" class="categories">
-  <div class="section-inner">
-    <div class="reveal">
-      <p class="section-eyebrow">Зурхайн төрлүүд</p>
-      <h2 class="section-title">Амьдралын<br><em>дөрвөн тулгуур</em></h2>
-      <div class="gold-rule"></div>
-    </div>
-
-    <div class="cat-grid reveal">
-      <a href="reading.html?type=fate" class="cat-card">
-        <span class="cat-glyph">🌌</span>
-        <div class="cat-name">Хувь Заяа</div>
-        <div class="cat-sub">Энэ амьдралын зорилго</div>
-        <div class="cat-desc">Та яагаад энэ дэлхийд ирсэн бэ? Таны сүнс ямар зорилго дагуулж ирсэн бэ? Гурван зурхайгаар таны заяаны гол утгыг тайлна.</div>
-        <div class="cat-tags">
-          <span class="cat-tag">Заяа</span>
-          <span class="cat-tag">Сүнсний зам</span>
-          <span class="cat-tag">Хуваалга</span>
-          <span class="cat-tag">Буян</span>
-        </div>
-        <span class="cat-arrow">↗</span>
-      </a>
-
-      <a href="reading.html?type=career" class="cat-card">
-        <span class="cat-glyph">⭐</span>
-        <div class="cat-name">Ажил, Карьер</div>
-        <div class="cat-sub">Амжилтын зам</div>
-        <div class="cat-desc">Ямар ажил таны хийморьт нийцдэг вэ? Карьерийн хамгийн тохиромжтой цаг хэзээ вэ? Хүч чадлаа хэрхэн дайчлах вэ?</div>
-        <div class="cat-tags">
-          <span class="cat-tag">Хийморь</span>
-          <span class="cat-tag">Мэргэжил</span>
-          <span class="cat-tag">Амжилт</span>
-          <span class="cat-tag">Баялаг</span>
-        </div>
-        <span class="cat-arrow">↗</span>
-      </a>
-
-      <a href="reading.html?type=love" class="cat-card">
-        <span class="cat-glyph">🌹</span>
-        <div class="cat-name">Хосын Зохицол</div>
-        <div class="cat-sub">Хайрын одод</div>
-        <div class="cat-desc">Таны хосын нийцэл ямар байна вэ? Хайрын замд ямар саад, ямар боломж байна вэ? Хэнтэй, хэзээ гэдгийг одод хэлнэ.</div>
-        <div class="cat-tags">
-          <span class="cat-tag">Хайр</span>
-          <span class="cat-tag">Нийцэл</span>
-          <span class="cat-tag">Хос</span>
-          <span class="cat-tag">Харилцаа</span>
-        </div>
-        <span class="cat-arrow">↗</span>
-      </a>
-
-      <a href="reading.html?type=luck" class="cat-card">
-        <span class="cat-glyph">💫</span>
-        <div class="cat-name">Аз, Хийморь</div>
-        <div class="cat-sub">Одоогийн эрч хүч</div>
-        <div class="cat-desc">Хийморь тань одоо ямар байна вэ? Энэ сарын аз хэрхэн байгааг, хамгийн тохиромжтой цагийг тодорхойлно.</div>
-        <div class="cat-tags">
-          <span class="cat-tag">Аз</span>
-          <span class="cat-tag">Хийморь</span>
-          <span class="cat-tag">Цаг үе</span>
-          <span class="cat-tag">Шийдвэр</span>
-        </div>
-        <span class="cat-arrow">↗</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<div class="divider"><div class="divider-line"></div><span class="divider-glyph">✦ ✦ ✦</span><div class="divider-line"></div></div>
-
-<!-- PREVIEW -->
-<section>
-  <div class="section-inner">
-    <div class="preview-wrap">
-      <div class="reveal">
-        <p class="section-eyebrow">Жишээ уншилт</p>
-        <h2 class="section-title">Эхний хэсэг<br><em>үнэгүй</em></h2>
-        <div class="gold-rule"></div>
-        <p style="font-size:0.85rem;line-height:2;color:rgba(232,223,200,0.5);margin-bottom:2rem;">
-          Зурхайн эхний хэсэг нь үнэгүй нээлттэй — таны жил, орд, элемент, үндсэн чанар. Үлдсэн гүн уншилт нь төлбөртэй нээгдэнэ.
-        </p>
-        <a href="reading.html" class="btn-gold">Одоо туршиж үзэх</a>
-      </div>
-
-      <div class="reveal">
-        <div class="preview-card">
-          <div class="preview-badge">✦ Жишээ уншилт</div>
-          <div class="preview-title">Морины жил · Гал · 1990</div>
-          <p class="preview-text">
-            <strong style="color:var(--gold);font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;">Үндсэн чанар</strong><br>
-            Та гал морины эрч хүчтэй, хийморь тань дөлгөөн биш — бүхнийг давхидаг, урагш тэмүүлдэг. Чөлөөт сэтгэл, хүчтэй зориг таны гол давуу тал...
-          </p>
-          <div class="preview-blur-wrap">
-            <p class="preview-blur-text">
-              ...гэвч дотоод тайван байдлыг хайдаг тал бас бий. Та олон замыг нэг дор явахыг хүсдэг учраас заримдаа хүч тань тарамддаг. Энэ амьдралд таны гол сорилт бол нэг замд тогтож, гал морь мэт давхих тэр хүчээ нэг зорилгод чиглүүлэх явдал юм. Одод таны хувьд 2024-2026 оныг...
-            </p>
-            <div class="preview-unlock">
-              <span class="unlock-icon">🔮</span>
-              <span class="unlock-text">Бүтэн уншилт үзэхийн тулд<br>нэвтэрнэ үү</span>
-              <a href="payment.html" class="btn-gold" style="padding:0.7rem 1.8rem;font-size:0.75rem;">Нээх</a>
+import { useState, useEffect, useRef } from "react";
+
+// ── ZODIAC HELPERS ──
+function getMn(year) {
+  const a=['хулгана','үхэр','бар','туулай','луу','могой','морь','хонь','мич','тахиа','нохой','гахай'];
+  const e=['Мод','Гал','Газар','Төмөр','Ус'];
+  return{animal:a[((year-4)%12+12)%12],element:e[((Math.floor(((year-4)%10)/2))%5+5)%5]};
+}
+function getWs(month,day){
+  const m=parseInt(month),d=parseInt(day);
+  if((m===12&&d>=22)||(m===1&&d<20))return{name:'Матарын орд',sym:'♑'};
+  if((m===1&&d>=20)||(m===2&&d<19))return{name:'Хумхын орд',sym:'♒'};
+  if((m===2&&d>=19)||(m===3&&d<20))return{name:'Загасны орд',sym:'♓'};
+  if((m===3&&d>=20)||(m===4&&d<21))return{name:'Хонины орд',sym:'♈'};
+  if((m===4&&d>=21)||(m===5&&d<21))return{name:'Үхрийн орд',sym:'♉'};
+  if((m===5&&d>=21)||(m===6&&d<22))return{name:'Ихрийн орд',sym:'♊'};
+  if((m===6&&d>=22)||(m===7&&d<23))return{name:'Мэлхийн орд',sym:'♋'};
+  if((m===7&&d>=23)||(m===8&&d<23))return{name:'Арслангийн орд',sym:'♌'};
+  if((m===8&&d>=23)||(m===9&&d<23))return{name:'Охины орд',sym:'♍'};
+  if((m===9&&d>=23)||(m===10&&d<23))return{name:'Жинлүүрийн орд',sym:'♎'};
+  if((m===10&&d>=23)||(m===11&&d<22))return{name:'Хилэнцийн орд',sym:'♏'};
+  if((m===11&&d>=22)||(m===12&&d<22))return{name:'Нумын орд',sym:'♐'};
+  return{name:'Матарын орд',sym:'♑'};
+}
+
+// ── SYSTEM PROMPTS ──
+function buildSystem(mn, ws, gender, type) {
+  const desc = {
+    fate: `Энэ хүний хувь заяа, амьдралын гол зорилгыг уншина. "Чи" гэж шууд хандаж яри. Дотоод мөн чанар, заяаны зам, энэ амьдралд юуг биелүүлэхээр ирснийг хэл. Жил, орд дурдахгүй.`,
+    love: `Энэ хүний хайр дурлалын замналыг уншина. "Чи" гэж шууд хандаж яри. Хайр хэрхэн ирдэг, ямар хүнтэй нийцдэг, харилцаанд юу хүлээж байгааг хэл. Жил, орд дурдахгүй.`,
+    career: `Энэ хүний ажил карьерийн замыг уншина. "Чи" гэж шууд хандаж яри. Ямар чиглэлд авьяастай, амжилт хэрхэн ирдэг, карьерт юу хүлээж байгааг хэл. Жил, орд дурдахгүй.`,
+    luck: `Энэ хүний одоогийн аз завшааныг уншина. "Чи" гэж шууд хандаж яри. Энэ үед аз хэрхэн байгаа, хийморь өндөр эсэх, шийдвэр гарах тохиромжтой цагийг хэл.`,
+    lifecycle: `Энэ хүний амьдралын мөчлөгийг уншина. "Чи" гэж шууд хандаж яри. 4 үе шатыг товч дурьд: өсвөр нас (10-20), залуу нас (20-30), дунд нас (30-40), боловсролт нас (40-50). Тус бүр 1-2 өгүүлбэр. Жил, орд дурдахгүй. Заавал бүрэн дуусгаарай.`,
+    finance: `Энэ хүний санхүүгийн замналыг уншина. "Чи" гэж шууд хандаж яри. Баялаг хэрхэн ирдэг, санхүүд аз тохиох цаг, санхүүгийн сул тал, хамгийн тохиромжтой орлогын эх үүсвэрийг хэл. Жил, орд дурдахгүй.`,
+    health: `Энэ хүний эрүүл мэндийн замналыг уншина. "Чи" гэж шууд хандаж яри. Биеийн хамгийн хүчтэй тал, анхаарах хэсэг, эрүүл мэндэд нөлөөлж буй зүйлсийг хэл. Жил, орд дурдахгүй.`,
+    avoid: `Энэ хүний зайлсхийх ёстой зүйлсийг уншина. "Чи" гэж шууд хандаж яри. Амьдралд учрах гол саад, хор хөнөөлтэй нөлөө, зайлсхийх хүн, нөхцөл байдлыг хэл. Жил, орд дурдахгүй.`,
+    buyan: `Энэ хүний буян хишгийг дуудах арга замыг уншина. "Чи" гэж шууд хандаж яри. Хишиг буян татах зан үйл, сэтгэлгээ, хийх ёстой зүйлсийг хэл. Жил, орд дурдахгүй.`,
+    sakhius: `Энэ хүний хамгаалагч сахиусыг уншина. "Чи" гэж шууд хандаж яри. Ямар сахиус тань хамгаалж байгаа, тэдний нөлөө, хэрхэн холбогдохыг хэл. Жил, орд дурдахгүй.`,
+    danger: `Энэ хүний амьдралд учирч болох гай зовлонг уншина. "Чи" гэж шууд хандаж яри. Ямар хүнд үед болгоомжлох, ямар сорилт ирж болохыг хэл. Жил, орд дурдахгүй.`,
+    reincarnation: `Энэ хүний өмнөх ба дараа төрлийн замналыг уншина. "Чи" гэж шууд хандаж яри. Өмнөх төрлөөс авчирсан буян, сул тал, дараа төрлийн зам юу байхыг хэл. Жил, орд дурдахгүй.`,
+  };
+  return `Чи бол Хувь-Заяа — нууцлаг зөнч. Монгол, Төвд зурхай, Астрологийн мэдлэгтэй.
+Хэрэглэгчийн зурхай: ${mn.element} ${mn.animal}ын жил, ${ws.name} орд, ${gender}.
+Даалгавар: ${desc[type]}
+ДҮРЭМ:
+- Markdown (#, *, _, **) огт хэрэглэхгүй
+- "Чи" гэж шууд хандана — жил, орд, элементийн нэр дурдахгүй
+- Товч, гүн, нууцлаг — 3-4 өгүүлбэр (амьдралын мөчлөг 8 өгүүлбэр хүртэл)
+- Эхний өгүүлбэр хамгийн хүчтэй байх
+- "AI" гэж хэзээ ч хэлэхгүй
+- Заавал бүрэн дуусгаарай — дундаас тасалдахгүй`;
+}
+
+async function callClaude(system, userMsg) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,system,messages:[{role:"user",content:userMsg}]})
+  });
+  const data = await res.json();
+  if(data.content?.[0]) return data.content[0].text.replace(/[#*_`]/g,'').trim();
+  throw new Error("API error");
+}
+
+// ── TABS CONFIG ──
+const BAG1_TABS = [
+  {id:"fate",  icon:"🌌", label:"Хувь заяа"},
+  {id:"love",  icon:"🌹", label:"Хосын зохицол"},
+  {id:"career",icon:"⭐", label:"Ажил карьер"},
+  {id:"luck",  icon:"💫", label:"Аз хийморь"},
+];
+const BAG2_TABS = [
+  {id:"lifecycle", icon:"🔄", label:"Амьдралын мөчлөг"},
+  {id:"finance",   icon:"💰", label:"Санхүүгийн зурхай"},
+  {id:"health",    icon:"🌿", label:"Эрүүл мэнд"},
+  {id:"avoid",     icon:"⚡", label:"Зайлсхийх зүйлс"},
+];
+const BAG3_TABS = [
+  {id:"buyan",         icon:"✨", label:"Буян хишиг дуудах"},
+  {id:"sakhius",       icon:"🛡", label:"Хамгаалагч сахиус"},
+  {id:"danger",        icon:"🌑", label:"Гай зовлон"},
+  {id:"reincarnation", icon:"♾", label:"Өмнө ба дараа төрөл"},
+];
+
+const css = `
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#07060f;}
+.app{min-height:100vh;background:#07060f;color:#e8e0d0;font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden;}
+
+/* STARS */
+.star{position:fixed;border-radius:50%;background:#e8e0d0;pointer-events:none;z-index:0;}
+@keyframes tw{0%,100%{opacity:0}50%{opacity:var(--op)}}
+
+/* HOME */
+.home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;position:relative;z-index:1;}
+.home-orb{width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 38% 35%,rgba(230,200,140,0.55),rgba(120,70,180,0.65) 50%,rgba(7,6,15,0.95) 80%);margin:0 auto 2.5rem;position:relative;animation:orbf 6s ease-in-out infinite;box-shadow:0 0 60px rgba(155,111,212,0.2),0 0 120px rgba(155,111,212,0.06);}
+.home-orb::before{content:'';position:absolute;inset:-14px;border-radius:50%;border:1px solid rgba(201,169,110,0.12);animation:orbr 12s linear infinite;}
+.home-orb::after{content:'';position:absolute;inset:-28px;border-radius:50%;border:1px solid rgba(155,111,212,0.07);animation:orbr 20s linear infinite reverse;}
+@keyframes orbf{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes orbr{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.eyebrow{font-size:0.58rem;letter-spacing:0.42em;text-transform:uppercase;color:#9b6fd4;margin-bottom:1.2rem;opacity:0.8;}
+.big-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3.5rem,10vw,7rem);font-weight:300;line-height:1;margin-bottom:0.5rem;letter-spacing:0.02em;}
+.big-title em{font-style:italic;color:#c9a96e;}
+.title-sep{width:40px;height:1px;background:linear-gradient(to right,transparent,rgba(201,169,110,0.35),transparent);margin:0.8rem auto 1.2rem;}
+.sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:#6b6480;margin-bottom:3rem;letter-spacing:0.03em;}
+.form-box{width:100%;max-width:440px;}
+.flabel{font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;color:#7a5f35;margin-bottom:0.5rem;display:block;text-align:left;}
+.date-row{display:grid;grid-template-columns:2fr 1fr 1fr;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.8rem;background:rgba(14,12,26,0.5);}
+.date-row input{background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.12);color:#f0e8d8;font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;padding:0.75rem 0.5rem;outline:none;width:100%;text-align:center;transition:background 0.2s;}
+.date-row input:focus{background:rgba(201,169,110,0.04);}
+.date-row input:last-child{border-right:none;}
+.date-row input::placeholder{color:rgba(201,169,110,0.18);font-size:1.3rem;}
+.gender-row{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.8rem;background:rgba(14,12,26,0.5);}
+.gbtn{background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.12);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;padding:0.9rem;cursor:pointer;transition:all 0.2s;}
+.gbtn:last-child{border-right:none;}
+.gbtn.sel,.gbtn:hover{color:#c9a96e;background:rgba(201,169,110,0.06);}
+.sbtn{width:100%;background:transparent;border:1px solid rgba(201,169,110,0.4);color:#c9a96e;font-family:'Inter',sans-serif;font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;padding:1.1rem;cursor:pointer;transition:all 0.25s;margin-top:0.3rem;}
+.sbtn:hover{border-color:rgba(201,169,110,0.85);color:#e8c878;background:rgba(201,169,110,0.05);}
+.fnote{font-size:0.63rem;color:#6b6480;text-align:center;margin-top:0.8rem;}
+.gender-row{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.7rem;}
+.gbtn{background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.15);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.85rem;cursor:pointer;transition:all 0.2s;}
+.gbtn:last-child{border-right:none;}
+.gbtn.sel,.gbtn:hover{color:#c9a96e;background:rgba(201,169,110,0.07);}
+.sbtn{width:100%;background:transparent;border:1px solid rgba(201,169,110,0.4);color:#e8e0d0;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;letter-spacing:0.02em;padding:1.1rem;cursor:pointer;transition:all 0.25s;margin-top:0.3rem;text-transform:none;}
+.sbtn em{font-style:italic;color:#c9a96e;}
+.sbtn:hover{border-color:rgba(201,169,110,0.85);background:rgba(201,169,110,0.04);}
+.fnote{font-size:0.63rem;color:#6b6480;text-align:center;margin-top:0.8rem;}
+
+/* TESTIMONIALS */
+.testi-wrap{width:100%;max-width:440px;margin-top:2.5rem;}
+.testi-sep{font-size:0.7rem;color:rgba(201,169,110,0.3);text-align:center;letter-spacing:0.5rem;margin-bottom:2rem;}
+.testi-list{display:flex;flex-direction:column;gap:1.2rem;}
+.testi-item{border-left:1px solid rgba(201,169,110,0.15);padding-left:1rem;}
+.testi-stars{color:#c9a96e;font-size:0.7rem;letter-spacing:0.15em;margin-bottom:0.4rem;}
+.testi-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.95rem;color:rgba(232,224,208,0.6);line-height:1.7;margin-bottom:0.4rem;}
+.testi-name{font-size:0.62rem;letter-spacing:0.12em;color:#6b6480;}
+
+/* LOADING */
+.loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;text-align:center;padding:2rem;position:relative;z-index:1;}
+.moon{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(201,169,110,0.5),rgba(100,60,160,0.7));animation:mp 2.5s ease-in-out infinite;box-shadow:0 0 50px rgba(155,111,212,0.2);}
+@keyframes mp{0%,100%{transform:scale(1);opacity:0.8}50%{transform:scale(1.08);opacity:1}}
+.ltext{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.3rem;color:#c9a96e;}
+.lsub{font-size:0.72rem;color:#6b6480;letter-spacing:0.1em;}
+
+/* RESULT */
+.result{min-height:100vh;padding:2.5rem 1.5rem 5rem;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
+.result-inner{width:100%;max-width:580px;}
+.pills{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:2rem;}
+.pill{font-size:0.65rem;letter-spacing:0.1em;padding:0.3rem 0.8rem;border:1px solid rgba(201,169,110,0.2);color:#7a5f35;}
+
+/* BAG SELECTOR */
+.bag-selector{display:flex;gap:0;border:1px solid rgba(201,169,110,0.15);margin-bottom:0.3rem;}
+.bag-btn{flex:1;background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.15);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.7rem 0.3rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.4;}
+.bag-btn:last-child{border-right:none;}
+.bag-btn.active{color:#c9a96e;background:rgba(201,169,110,0.07);}
+.bag-btn .bprice{display:block;font-size:0.62rem;color:#7a5f35;margin-top:0.2rem;}
+.bag-btn.active .bprice{color:#c9a96e;}
+
+/* TABS */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(201,169,110,0.1);margin-bottom:2rem;}
+.tab{background:transparent;border:none;border-right:1px solid rgba(201,169,110,0.1);color:#6b6480;font-family:'Inter',sans-serif;font-size:0.58rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.65rem 0.15rem;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.4;}
+.tab:last-child{border-right:none;}
+.tab .ti{font-size:0.95rem;display:block;margin-bottom:0.25rem;}
+.tab.active{color:#c9a96e;background:rgba(201,169,110,0.07);}
+
+.rlabel{font-size:0.58rem;letter-spacing:0.3em;text-transform:uppercase;color:#9b6fd4;margin-bottom:1.2rem;}
+.rtext{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;line-height:1.9;color:rgba(232,224,208,0.87);margin-bottom:1.5rem;}
+
+/* LOCKED */
+.locked-wrap{position:relative;}
+.locked-blur{filter:blur(7px);user-select:none;pointer-events:none;font-family:'Cormorant Garamond',serif;font-size:1.05rem;line-height:1.9;color:rgba(232,224,208,0.6);padding-bottom:6rem;}
+.gate{position:absolute;bottom:0;left:0;right:0;padding-top:5rem;background:linear-gradient(to bottom,transparent,rgba(7,6,15,0.98) 35%);display:flex;flex-direction:column;align-items:center;gap:0.8rem;text-align:center;padding-bottom:0.5rem;}
+.gtitle{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-style:italic;font-weight:300;color:#e8e0d0;line-height:1.3;}
+.gprice{font-size:0.68rem;letter-spacing:0.1em;color:#6b6480;}
+.gbtn2{background:#c9a96e;color:#07060f;border:none;padding:0.9rem 2.5rem;font-family:'Inter',sans-serif;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.gbtn2:hover{background:#d4b87e;}
+.back-btn{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#6b6480;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;margin-top:2rem;display:block;}
+.back-btn:hover{color:#c9a96e;}
+
+/* CHOOSE */
+.choose{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;position:relative;z-index:1;}
+.choose-title{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:300;text-align:center;margin-bottom:0.5rem;}
+.choose-title em{font-style:italic;color:#c9a96e;}
+.choose-sub{font-size:0.78rem;color:#6b6480;text-align:center;margin-bottom:2.5rem;}
+.choose-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;width:100%;max-width:440px;}
+.choose-card{background:rgba(14,12,26,0.8);border:1px solid rgba(201,169,110,0.15);padding:1.8rem 1.2rem;cursor:pointer;transition:all 0.25s;text-align:center;}
+.choose-card:hover{border-color:rgba(201,169,110,0.5);background:rgba(201,169,110,0.05);transform:translateY(-2px);}
+.choose-icon{font-size:2rem;display:block;margin-bottom:0.8rem;}
+.choose-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:400;color:#e8e0d0;margin-bottom:0.3rem;}
+.choose-desc{font-size:0.68rem;color:#6b6480;line-height:1.5;}
+.choose-free{font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:#9b6fd4;margin-top:0.5rem;display:block;}
+
+/* PAYMENT */
+.payment{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;text-align:center;position:relative;z-index:1;}
+.ptitle{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;}
+.ptitle em{font-style:italic;color:#c9a96e;}
+.qrbox{background:#fff;padding:1.2rem;display:inline-flex;flex-direction:column;align-items:center;gap:0.7rem;}
+.qrlabel{font-size:0.7rem;color:#333;font-family:'Inter',sans-serif;font-weight:400;}
+.pinfo{font-size:0.75rem;color:#6b6480;line-height:1.8;max-width:280px;}
+.pback{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#6b6480;cursor:pointer;background:none;border:none;font-family:'Inter',sans-serif;}
+.pback:hover{color:#c9a96e;}
+.hr{width:40px;height:1px;background:rgba(201,169,110,0.2);}
+`;
+
+export default function App() {
+  const [page, setPage] = useState("home");
+  const [gender, setGender] = useState("");
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
+  const [day, setDay] = useState("");
+  const [loadText, setLoadText] = useState("Одод уншиж байна...");
+  const [userData, setUserData] = useState(null);
+  const [readings, setReadings] = useState({});
+  const [activeBag, setActiveBag] = useState(1);
+  const [activeTab, setActiveTab] = useState("fate");
+  const [unlockedBags, setUnlockedBags] = useState([]);
+  const [payingBag, setPayingBag] = useState(null);
+  const qrRef = useRef(null);
+
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = css;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  // Stars
+  useEffect(() => {
+    const stars = Array.from({length:100},(_,i)=>{
+      const el = document.createElement("div");
+      el.className = "star";
+      const sz = Math.random()*1.8+0.3;
+      el.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation:tw ${Math.random()*4+2}s ease-in-out infinite ${Math.random()*6}s;--op:${Math.random()*0.5+0.15}`;
+      document.body.appendChild(el);
+      return el;
+    });
+    return () => stars.forEach(s => s.remove());
+  }, []);
+
+  useEffect(() => {
+    if (page === "payment" && qrRef.current) {
+      const canvas = qrRef.current;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle="#fff"; ctx.fillRect(0,0,160,160);
+      const cells=21,cell=160/cells;
+      const fin=(x,y)=>{ctx.fillStyle="#000";ctx.fillRect(x*cell,y*cell,7*cell,7*cell);ctx.fillStyle="#fff";ctx.fillRect((x+1)*cell,(y+1)*cell,5*cell,5*cell);ctx.fillStyle="#000";ctx.fillRect((x+2)*cell,(y+2)*cell,3*cell,3*cell);};
+      fin(0,0);fin(14,0);fin(0,14);
+      for(let r=0;r<cells;r++) for(let c=0;c<cells;c++){
+        const inF=(r<8&&c<8)||(r<8&&c>=13)||(r>=13&&c<8);
+        if(!inF){const v=((r*cells+c*1664525+1013904223)&0xffffffff)/0xffffffff;if(v>0.5){ctx.fillStyle="#000";ctx.fillRect(c*cell,r*cell,cell,cell);}}
+      }
+    }
+  }, [page]);
+
+  async function startReading() {
+    if(!year||!month||!day){alert("Төрсөн огноогоо бөглөнө үү.");return;}
+    if(!gender){alert("Хүйсээ сонгоно уу.");return;}
+    const mn=getMn(parseInt(year));
+    const ws=getWs(month,day);
+    const ud={year,month,day,gender,mongolian:mn,western:ws};
+    setUserData(ud);
+    setPage("choose"); // сонголтын хуудас руу
+  }
+
+  async function beginReading(chosenType) {
+    setActiveTab(chosenType);
+    setActiveBag(1);
+    setPage("loading");
+    const texts=["Одод уншиж байна...","Монгол зурхай тайлж байна...","Таны заяаны замыг нэгтгэж байна...","Нууцыг илчилж байна..."];
+    let li=0;
+    const iv=setInterval(()=>{li=(li+1)%texts.length;setLoadText(texts[li]);},1500);
+    try {
+      const text = await callClaude(buildSystem(userData.mongolian,userData.western,userData.gender,chosenType),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${chosenType} зурхайг уншиж өгнө үү.`);
+      clearInterval(iv);
+      setReadings({[chosenType]:text});
+      setPage("result");
+    } catch(e){
+      clearInterval(iv);
+      alert("Алдаа гарлаа. Дахин оролдоно уу.");
+      setPage("choose");
+    }
+  }
+
+  async function switchTab(type) {
+    setActiveTab(type);
+    if(readings[type]) return;
+    // Determine which bag this tab belongs to
+    const bag1ids = BAG1_TABS.map(t=>t.id);
+    const bag2ids = BAG2_TABS.map(t=>t.id);
+    const bag3ids = BAG3_TABS.map(t=>t.id);
+    const requiredBag = bag1ids.includes(type)?1:bag2ids.includes(type)?2:3;
+    if(requiredBag===1&&type==="fate") return; // already loaded
+    if(requiredBag>1&&!unlockedBags.includes(requiredBag)) return;
+    if(requiredBag===1&&!unlockedBags.includes(1)&&type!=="fate") return;
+    setReadings(r=>({...r,[type]:"__loading__"}));
+    try {
+      const text = await callClaude(buildSystem(userData.mongolian,userData.western,userData.gender,type),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${type} зурхайг уншиж өгнө үү.`);
+      setReadings(r=>({...r,[type]:text}));
+    } catch(e){
+      setReadings(r=>({...r,[type]:"Алдаа гарлаа."}));
+    }
+  }
+
+  async function unlockBag(bag) {
+    setUnlockedBags(prev=>[...prev,bag]);
+    setPayingBag(null);
+    setActiveBag(bag);
+    // Load first tab of that bag
+    const firstTab = bag===1?BAG1_TABS[1]:bag===2?BAG2_TABS[0]:BAG3_TABS[0];
+    setActiveTab(firstTab.id);
+    setPage("loading");
+    setLoadText("Зурхай нэгтгэж байна...");
+    const tabs = bag===1?BAG1_TABS.slice(1):bag===2?BAG2_TABS:BAG3_TABS;
+    const newR = {...readings};
+    for(const t of tabs){
+      if(!newR[t.id]){
+        try{
+          newR[t.id] = await callClaude(buildSystem(userData.mongolian,userData.western,userData.gender,t.id),`Төрсөн он:${userData.year}, сар:${userData.month}, өдөр:${userData.day}. ${t.id} зурхайг уншиж өгнө үү.`);
+        }catch(e){newR[t.id]="Алдаа гарлаа.";}
+      }
+    }
+    setReadings(newR);
+    setPage("result");
+  }
+
+  function getCurrentTabs() {
+    if(activeBag===1) return BAG1_TABS;
+    if(activeBag===2) return BAG2_TABS;
+    return BAG3_TABS;
+  }
+
+  function isTabLocked(tabId) {
+    const bag1ids = BAG1_TABS.map(t=>t.id);
+    if(bag1ids.includes(tabId)) {
+      if(tabId==="fate") return false;
+      return !unlockedBags.includes(1);
+    }
+    const bag2ids = BAG2_TABS.map(t=>t.id);
+    if(bag2ids.includes(tabId)) return !unlockedBags.includes(2);
+    return !unlockedBags.includes(3);
+  }
+
+  const bagPrices = {1:"₮5,000",2:"₮9,900",3:"₮19,900"};
+  const bagLabels = {1:"Үндсэн",2:"Гүнзгий",3:"Нууц"};
+
+  const labels = {
+    fate:"✦ Таны хувь заяа",love:"✦ Хосын зохицол",career:"✦ Ажил карьер",luck:"✦ Аз хийморь",
+    lifecycle:"✦ Амьдралын мөчлөг",finance:"✦ Санхүүгийн зурхай",health:"✦ Эрүүл мэнд",avoid:"✦ Зайлсхийх зүйлс",
+    buyan:"✦ Буян хишиг дуудах",sakhius:"✦ Хамгаалагч сахиус",danger:"✦ Гай зовлон",reincarnation:"✦ Өмнө ба дараа төрөл"
+  };
+
+  const curText = readings[activeTab];
+  const locked = isTabLocked(activeTab);
+
+  return (
+    <div className="app">
+      {/* HOME */}
+      {page==="home"&&(
+        <div className="home">
+          <div className="home-orb"/>
+          <p className="eyebrow">Монгол · Төвд · Астрологи</p>
+          <h1 className="big-title">Хувь · <em>Заяа</em></h1>
+          <div className="title-sep"/>
+          <p className="sub">Чам дээр туссан од гэж бий</p>
+          <div className="form-box">
+            <span className="flabel">Төрсөн огноо</span>
+            <div className="date-row">
+              <input type="number" placeholder="1995" value={year} onChange={e=>setYear(e.target.value)} inputMode="numeric"/>
+              <input type="number" placeholder="09" value={month} onChange={e=>setMonth(e.target.value)} inputMode="numeric"/>
+              <input type="number" placeholder="29" value={day} onChange={e=>setDay(e.target.value)} inputMode="numeric"/>
+            </div>
+            <span className="flabel">Хүйс</span>
+            <div className="gender-row">
+              <button className={`gbtn${gender==="эрэгтэй"?" sel":""}`} onClick={()=>setGender("эрэгтэй")}>Эрэгтэй</button>
+              <button className={`gbtn${gender==="эмэгтэй"?" sel":""}`} onClick={()=>setGender("эмэгтэй")}>Эмэгтэй</button>
+            </div>
+            <button className="sbtn" onClick={startReading}>Нууцыг · <em>Тайлах</em></button>
+          </div>
+
+          <div className="testi-wrap">
+            <div className="testi-sep">✦</div>
+            <div className="testi-list">
+              <div className="testi-item">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-text">"Хосын зохицол хэсэг уншаад нулимс дусаасан. Яг намайг хэлж байгаа юм шиг санагдсан."</p>
+                <span className="testi-name">— Н. Энхтуяа, Улаанбаатар</span>
+              </div>
+              <div className="testi-item">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-text">"Карьерийн зурхай уншуулсан. Хэлсэн цаг нь таарч, одоо амжилттай явж байна."</p>
+                <span className="testi-name">— Б. Мөнхбаяр, Дархан</span>
+              </div>
+              <div className="testi-item">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-text">"Хувь заяа хэсэг маань надад ямар ч хүн хэзээ ч хэлж байгаагүй зүйлийг хэлсэн."</p>
+                <span className="testi-name">— О. Солонго, Эрдэнэт</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* CHOOSE */}
+      {page==="choose"&&userData&&(
+        <div className="choose">
+          <h2 className="choose-title">Юуг <em>уншуулах</em> вэ?</h2>
+          <p className="choose-sub">Нэгийг сонгоно уу — үнэгүй уншигдана</p>
+          <div className="choose-grid">
+            {BAG1_TABS.map(t=>(
+              <div key={t.id} className="choose-card" onClick={()=>beginReading(t.id)}>
+                <span className="choose-icon">{t.icon}</span>
+                <div className="choose-name">{t.label}</div>
+                <span className="choose-free">✦ Үнэгүй</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* LOADING */}
+      {page==="loading"&&(
+        <div className="loading">
+          <div className="moon"/>
+          <p className="ltext">{loadText}</p>
+          <p className="lsub">Таны заяаны замыг нэгтгэж байна</p>
+        </div>
+      )}
+
+      {/* RESULT */}
+      {page==="result"&&userData&&(
+        <div className="result">
+          <div className="result-inner">
+            <div className="pills">
+              <span className="pill">{userData.mongolian.element} {userData.mongolian.animal}</span>
+              <span className="pill">{userData.western.sym} {userData.western.name}</span>
+              <span className="pill">{userData.year} он</span>
+            </div>
+
+            {/* Bag selector */}
+            <div className="bag-selector">
+              {[1,2,3].map(b=>(
+                <button key={b} className={`bag-btn${activeBag===b?" active":""}`} onClick={()=>{setActiveBag(b);const t=b===1?"fate":b===2?"lifecycle":"buyan";setActiveTab(t);}}>
+                  {bagLabels[b]}
+                  <span className="bprice">{b===1?"Үнэгүй + "+bagPrices[1]:bagPrices[b]}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Tabs */}
+            <div className="tabs">
+              {getCurrentTabs().map(t=>(
+                <button key={t.id} className={`tab${activeTab===t.id?" active":""}`} onClick={()=>switchTab(t.id)}>
+                  <span className="ti">{t.icon}</span>{t.label}
+                </button>
+              ))}
+            </div>
+
+            <p className="rlabel">{labels[activeTab]}</p>
+
+            {/* Content */}
+            {locked ? (
+              <div className="locked-wrap">
+                <div className="locked-blur">
+                  Чиний заяаны нууц энд нуугдаж байна. Одод чиний замыг харж байна. Энэ хэсгийг нээхэд бэлэн үү?
+                  Чиний хайж буй хариулт энд байна...
+                </div>
+                <div className="gate">
+                  <p className="gtitle">{activeBag===1?"Үлдсэн 3 зурхайг нээх":activeBag===2?"Гүнзгий уншилт нээх":"Нууц уншилт нээх"}</p>
+                  <p className="gprice">
+                    {activeBag===1?"Хосын зохицол · Карьер · Аз хийморь":
+                     activeBag===2?"Амьдралын мөчлөг · Санхүү · Эрүүл мэнд · Зайлсхийх":
+                     "Буян · Сахиус · Гай зовлон · Дараа төрөл"}
+                  </p>
+                  <button className="gbtn2" onClick={()=>{setPayingBag(activeBag);setPage("payment");}}>
+                    QPay-аар төлөх — {bagPrices[activeBag]}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {curText==="__loading__" ? (
+                  <p className="rtext" style={{color:"#6b6480",fontStyle:"italic"}}>Уншиж байна...</p>
+                ) : (
+                  <p className="rtext">{curText}</p>
+                )}
+                {activeTab==="fate"&&!unlockedBags.includes(1)&&(
+                  <div className="locked-wrap">
+                    <div className="locked-blur">
+                      Хосын нийцлийн тооцоо таны хожим учрах хүний шинжийг илчлэнэ.
+                      Карьерийн шийдэх цаг ойртож байна. Хийморь тань энэ саруудад...
+                    </div>
+                    <div className="gate">
+                      <p className="gtitle">Үлдсэн 3 зурхайг<br/>нээх үү?</p>
+                      <p className="gprice">Хосын зохицол · Карьер · Аз хийморь</p>
+                      <button className="gbtn2" onClick={()=>{setPayingBag(1);setPage("payment");}}>QPay-аар төлөх — ₮5,000</button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <button className="back-btn" onClick={()=>setPage("home")}>← Дахин уншуулах</button>
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENT */}
+      {page==="payment"&&(
+        <div className="payment">
+          <p className="ptitle">Нууцыг <em>нээх</em></p>
+          <p style={{fontSize:"0.78rem",color:"#6b6480"}}>QPay уншуулаад зурхайгаа бүтнээр харна уу</p>
+          <div className="qrbox">
+            <canvas ref={qrRef} width={160} height={160}/>
+            <div className="qrlabel">QPay · Хувь-Заяа · {bagPrices[payingBag]}</div>
+          </div>
+          <p className="pinfo">Төлбөр хийсний дараа доорх товч дарж нэвтэрнэ үү</p>
+          <button className="gbtn2" onClick={()=>unlockBag(payingBag)}>Төлбөр баталгаажуулах</button>
+          <div className="hr"/>
+          <button className="pback" onClick={()=>setPage("result")}>← Буцах</button>
+        </div>
+      )}
     </div>
-  </div>
-</section>
-
-<div class="divider"><div class="divider-line"></div><span class="divider-glyph">✦ ✦ ✦</span><div class="divider-line"></div></div>
-
-<!-- PRICING -->
-<section id="pricing">
-  <div class="section-inner">
-    <div class="reveal">
-      <p class="section-eyebrow">Үнэ тариф</p>
-      <h2 class="section-title">Заяагаа<br><em>бүтнээр нээ</em></h2>
-      <div class="gold-rule"></div>
-    </div>
-
-    <div class="pricing-grid reveal">
-      <div class="price-card">
-        <div class="price-name">Нэг уншилт</div>
-        <div class="price-tagline">Нэг сэдвийн гүн уншилт. Туршиж үзэхэд тохиромжтой.</div>
-        <div class="price-amount">₮5,900</div>
-        <div class="price-unit">нэг удаагийн</div>
-        <ul class="price-list">
-          <li>Нэг төрлийн зурхай (Хувь заяа / Карьер / Хос / Аз)</li>
-          <li>Гурван зурхайн нэгдсэн уншилт</li>
-          <li>Нэмэлт асуулт тавих боломж</li>
-        </ul>
-        <a href="payment.html?plan=basic" class="btn-ghost" style="display:block;text-align:center;">Сонгох</a>
-      </div>
-
-      <div class="price-card featured">
-        <div class="price-top">Хамгийн их сонгогддог</div>
-        <div class="price-name">Бүтэн уншилт</div>
-        <div class="price-tagline">Амьдралын бүх талыг хамарсан иж бүрэн уншилт.</div>
-        <div class="price-amount">₮14,900</div>
-        <div class="price-unit">нэг бүтэн уншилт</div>
-        <ul class="price-list">
-          <li>4 төрлийн зурхай бүгд</li>
-          <li>Амьдралын зам (10 жил тутам)</li>
-          <li>Хязгааргүй нэмэлт асуулт</li>
-          <li>Монгол + Төвд + Астрологи</li>
-        </ul>
-        <a href="payment.html?plan=full" class="btn-gold" style="display:block;text-align:center;">Сонгох</a>
-      </div>
-
-      <div class="price-card">
-        <div class="price-name">Сарын эрх</div>
-        <div class="price-tagline">Сар бүр хязгааргүй зурхайлуулах давуу эрх.</div>
-        <div class="price-amount">₮29,900</div>
-        <div class="price-unit">сард</div>
-        <ul class="price-list">
-          <li>Хязгааргүй бүтэн уншилт</li>
-          <li>Өдрийн зурхай</li>
-          <li>Тэргүүлэх хандалт</li>
-          <li>Шинэ функц эрт авах</li>
-        </ul>
-        <a href="payment.html?plan=monthly" class="btn-ghost" style="display:block;text-align:center;">Сонгох</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"><div class="divider-line"></div><span class="divider-glyph">✦ ✦ ✦</span><div class="divider-line"></div></div>
-
-<!-- TESTIMONIALS -->
-<section>
-  <div class="section-inner">
-    <div class="reveal">
-      <p class="section-eyebrow">Хэрэглэгчид</p>
-      <h2 class="section-title">Тэдний <em>үгс</em></h2>
-      <div class="gold-rule"></div>
-    </div>
-    <div class="testi-grid reveal">
-      <div class="testi">
-        <p class="testi-text">"Гурван зурхайгаар уншуулсан нь өмнө хаанаас ч авч байгаагүй хариулт өгсөн. Монгол зурхайгаар мэддэг байсан зүйлс Астрологитой хосолмол маш гүн утгатай болсон."</p>
-        <div class="testi-name">Б. Энхжаргал — Улаанбаатар</div>
-      </div>
-      <div class="testi">
-        <p class="testi-text">"Карьерийн зурхайлуулснаас хойш шийдвэр маань тодорхой болсон. Зурхай хэлсэн цаг нь яг таарсан — тохиолдол биш байх."</p>
-        <div class="testi-name">Д. Батбаяр — Дархан</div>
-      </div>
-      <div class="testi">
-        <p class="testi-text">"Амьдралын замын хэсэг надад хамгийн их нөлөөлсөн. 20-иод насны үеийн тайлбар маань яг тэр цаг дахь намайг уншсан юм шиг санагдсан."</p>
-        <div class="testi-name">О. Нарантуяа — Эрдэнэт</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-brand">
-    <div class="logo">Хувь<span>·</span>Заяа</div>
-    <p class="footer-tagline">Монгол, Төвд зурхай болон Астрологийг нэгтгэсэн таны заяаны зам.</p>
-  </div>
-  <div class="footer-copy">
-    © 2024 Хувь-Заяа<br>
-    Зурхай зам харуулна, хүн өөрөө сонгоно
-  </div>
-</footer>
-
-<script>
-// ── HERO FORM ──
-let selGenderVal = '';
-
-function selGender(btn, g) {
-  document.querySelectorAll('.hf-gender-btn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
-  selGenderVal = g;
+  );
 }
-
-function goToReading() {
-  const year = document.getElementById('hYear').value;
-  const month = document.getElementById('hMonth').value;
-  const day = document.getElementById('hDay').value;
-  const name = document.getElementById('hName').value;
-  if (!year || !month || !day) { alert('Төрсөн он, сар, өдрөө оруулна уу.'); return; }
-  if (!selGenderVal) { alert('Хүйсээ сонгоно уу.'); return; }
-  const params = new URLSearchParams({ year, month, day, gender: selGenderVal, ...(name && { name }) });
-  window.location.href = 'reading.html?' + params.toString();
-}
-
-// ── COSMOS CANVAS ──
-const canvas = document.getElementById('cosmos-canvas');
-const ctx = canvas.getContext('2d');
-let W, H, stars = [], nebulae = [];
-
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-
-function initStars() {
-  stars = [];
-  for (let i = 0; i < 200; i++) {
-    stars.push({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      r: Math.random() * 1.5 + 0.2,
-      op: Math.random() * 0.7 + 0.1,
-      speed: Math.random() * 0.5 + 0.1,
-      phase: Math.random() * Math.PI * 2
-    });
-  }
-  nebulae = [];
-  for (let i = 0; i < 4; i++) {
-    nebulae.push({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      r: Math.random() * 200 + 100,
-      hue: Math.random() > 0.5 ? '200,169,110' : '123,94,167'
-    });
-  }
-}
-
-let t = 0;
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-
-  // Nebulae
-  nebulae.forEach(n => {
-    const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
-    g.addColorStop(0, `rgba(${n.hue},0.04)`);
-    g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-  });
-
-  // Stars
-  stars.forEach(s => {
-    const flicker = Math.sin(t * s.speed + s.phase) * 0.3 + 0.7;
-    ctx.globalAlpha = s.op * flicker;
-    ctx.fillStyle = '#e8dfc8';
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  ctx.globalAlpha = 1;
-  t += 0.01;
-  requestAnimationFrame(draw);
-}
-
-resize();
-initStars();
-draw();
-window.addEventListener('resize', () => { resize(); initStars(); });
-
-// ── SCROLL REVEAL ──
-const reveals = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('on'); });
-}, { threshold: 0.12 });
-reveals.forEach(r => observer.observe(r));
-</script>
-</body>
-</html>
