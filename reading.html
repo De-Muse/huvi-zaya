@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Зурхайлуулах — Хувь-Заяа</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root { --void:#05040a; --star:#e8dfc8; --gold:#c8a96e; --gold-dim:#8a6e3e; --violet-glow:#a67fd4; --mist:#6e6888; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--void);color:var(--star);font-family:'Jost',sans-serif;font-weight:300;min-height:100vh;}
+#cosmos-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+nav{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.4rem 3rem;border-bottom:1px solid rgba(200,169,110,0.1);background:rgba(5,4,10,0.9);}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;letter-spacing:0.15em;color:var(--gold);text-decoration:none;}
+.logo span{color:var(--violet-glow);}
+.back-link{font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--mist);text-decoration:none;}
+.back-link:hover{color:var(--gold);}
+main{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:4rem 2rem 6rem;}
+
+.loading-state{text-align:center;padding:8rem 2rem;}
+.loading-orb{width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(200,169,110,0.4),rgba(123,94,167,0.6));margin:0 auto 2rem;animation:pulse 2s ease-in-out infinite;box-shadow:0 0 40px rgba(123,94,167,0.3);}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.1);opacity:1}}
+.loading-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.4rem;color:var(--gold);margin-bottom:0.5rem;}
+.loading-sub{font-size:0.78rem;color:var(--mist);}
+
+.results{display:none;}
+.results.show{display:block;}
+
+/* Info pills */
+.info-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:3rem;}
+.info-pill{padding:0.4rem 1rem;border:1px solid rgba(200,169,110,0.2);font-size:0.75rem;color:var(--gold-dim);letter-spacing:0.1em;}
+
+/* Main reading */
+.reading-block{margin-bottom:3rem;}
+.reading-label{font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--violet-glow);margin-bottom:1.5rem;}
+.reading-body{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:300;line-height:2;color:rgba(232,223,200,0.85);}
+.reading-body p{margin-bottom:1.2rem;}
+
+/* Blur */
+.blur-block{position:relative;margin-top:1rem;}
+.blur-content{font-family:'Cormorant Garamond',serif;font-size:1.1rem;line-height:2;color:rgba(232,223,200,0.7);filter:blur(6px);user-select:none;pointer-events:none;}
+.blur-gate{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;background:linear-gradient(to bottom,transparent 0%,rgba(5,4,10,0.98) 40%);}
+.gate-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-style:italic;color:var(--star);text-align:center;line-height:1.5;}
+.gate-sub{font-size:0.75rem;color:var(--mist);text-align:center;letter-spacing:0.1em;}
+.gate-btn{background:var(--gold);color:var(--void);border:none;padding:1rem 3rem;font-family:'Jost',sans-serif;font-size:0.8rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-block;transition:background 0.2s;}
+.gate-btn:hover{background:var(--violet-glow);}
+
+.divider{width:40px;height:1px;background:rgba(200,169,110,0.3);margin:3rem 0;}
+
+.back-btn{display:inline-block;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--mist);text-decoration:none;border:1px solid rgba(200,169,110,0.15);padding:0.7rem 1.5rem;transition:all 0.2s;}
+.back-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+.error-state{display:none;text-align:center;padding:8rem 2rem;}
+.error-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold);margin-bottom:1rem;}
+</style>
+</head>
+<body>
+<canvas id="cosmos-canvas"></canvas>
+<nav>
+  <a href="index.html" class="logo">Хувь<span>·</span>Заяа</a>
+  <a href="index.html" class="back-link">← Буцах</a>
+</nav>
+<main>
+  <div class="loading-state" id="loadingState">
+    <div class="loading-orb"></div>
+    <p class="loading-text" id="loadingText">Одод уншиж байна...</p>
+    <p class="loading-sub">Таны заяаны замыг нэгтгэж байна</p>
+  </div>
+
+  <div class="results" id="resultsSection">
+    <div class="info-row" id="infoRow"></div>
+    <div class="reading-block">
+      <p class="reading-label">✦ Таны хувь заяа</p>
+      <div class="reading-body" id="freeText"></div>
+    </div>
+    <div class="blur-block">
+      <div class="blur-content" id="blurContent">
+        Таны заяаны гол утга энэ амьдралд нэг зорилгод хүрэхийн тулд тавигдсан. Хийморь чинь одоо өсөх үедээ байна — энэ цагийг алдвал дараагийн боломж удна. Хайрын замд тодорхой нэг үе чамайг хүлээж байна. Карьерийн шийдэх цаг ойртож байна...
+      </div>
+      <div class="blur-gate">
+        <p class="gate-title">Үлдсэн хэсгийг<br>нээх үү?</p>
+        <p class="gate-sub">Карьер · Хайр · Хийморь · Амьдралын зам</p>
+        <a href="payment.html" class="gate-btn">Нээх — ₮14,900</a>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <a href="index.html" class="back-btn">← Дахин уншуулах</a>
+  </div>
+
+  <div class="error-state" id="errorState">
+    <p class="error-title">Мэдээлэл дутуу байна</p>
+    <p style="color:var(--mist);margin-bottom:2rem;">Буцаж мэдээллээ оруулна уу.</p>
+    <a href="index.html" class="gate-btn">← Буцах</a>
+  </div>
+</main>
+
+<script>
+const canvas=document.getElementById('cosmos-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,stars=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function initStars(){stars=[];for(let i=0;i<150;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.2,op:Math.random()*0.5+0.1,speed:Math.random()*0.4+0.1,phase:Math.random()*Math.PI*2});}
+let t=0;
+function draw(){ctx.clearRect(0,0,W,H);stars.forEach(s=>{const f=Math.sin(t*s.speed+s.phase)*0.3+0.7;ctx.globalAlpha=s.op*f;ctx.fillStyle='#e8dfc8';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;t+=0.01;requestAnimationFrame(draw);}
+resize();initStars();draw();
+window.addEventListener('resize',()=>{resize();initStars();});
+
+function getMongolianZodiac(year){
+  const animals=['хулгана','үхэр','бар','туулай','луу','могой','морь','хонь','мич','тахиа','нохой','гахай'];
+  const elementNames=['Мод','Гал','Газар','Төмөр','Ус'];
+  const idx=(year-4)%12;
+  const elIdx=Math.floor(((year-4)%10)/2);
+  return{animal:animals[((idx%12)+12)%12],element:elementNames[((elIdx%5)+5)%5]};
+}
+
+function getWesternZodiac(month,day){
+  const signs=[[1,20,'Бухын орд','♑'],[2,19,'Усны орд','♒'],[3,20,'Загасны орд','♓'],[4,20,'Хурганы орд','♈'],[5,21,'Үхрийн орд','♉'],[6,21,'Ихрийн орд','♊'],[7,23,'Бүргэдийн орд','♋'],[8,23,'Арслангийн орд','♌'],[9,23,'Эгшигтийн орд','♍'],[10,23,'Жанчивын орд','♎'],[11,22,'Хилэнцийн орд','♏'],[12,22,'Нумын орд','♐']];
+  const m=parseInt(month),d=parseInt(day);
+  for(let i=0;i<signs.length;i++){const[sm,sd,name,sym]=signs[i];if(m===sm&&d>=sd)return{name,sym};if(m===(sm%12)+1&&d<sd)return{name:signs[(i-1+12)%12][2],sym:signs[(i-1+12)%12][3]};}
+  return{name:'Бухын орд',sym:'♑'};
+}
+
+async function loadReading(){
+  const p=new URLSearchParams(window.location.search);
+  const year=p.get('year'),month=p.get('month'),day=p.get('day'),gender=p.get('gender')||'эрэгтэй',name=p.get('name')||'';
+
+  if(!year||!month||!day){
+    document.getElementById('loadingState').style.display='none';
+    document.getElementById('errorState').style.display='block';
+    return;
+  }
+
+  const mn=getMongolianZodiac(parseInt(year));
+  const ws=getWesternZodiac(parseInt(month),parseInt(day));
+
+  const texts=['Одод уншиж байна...','Таны заяаны замыг нэгтгэж байна...','Монгол зурхай тайлж байна...','Хувь тавиланг илчилж байна...'];
+  let li=0;
+  const interval=setInterval(()=>{li=(li+1)%texts.length;document.getElementById('loadingText').textContent=texts[li];},1500);
+
+  const nameStr = name ? `Нэр: ${name}. ` : '';
+
+  const system=`Чи бол Хувь-Заяа — эртний Монгол зурхайн мэдлэгтэй нууцлаг зөнч.
+
+${nameStr}Хэрэглэгчийн зурхай:
+- ${mn.element} ${mn.animal}ын жилд төрсөн
+- Баруун орд: ${ws.name}
+- Хүйс: ${gender}
+
+ЗААВРУУД:
+1. Хэт урт бичихгүй — товч, гүн, нууцлаг байна
+2. Markdown тэмдэгт (#, **, *, _) огт хэрэглэхгүй
+3. Монгол уран хэл — "хийморь", "заяа", "хишиг", "буян" гэх үгс хэрэглэ
+4. Hoslol.com-ийн загвар шиг — богино өгүүлбэр, хүчтэй утга
+5. Эхний 2-3 өгүүлбэр л үнэгүй харагдана — тэр хэсэг хамгийн тод, гайхалтай байх ёстой
+6. "AI" гэж хэзээ ч хэлэхгүй
+7. 4-6 өгүүлбэр бичнэ — илүүгүй`;
+
+  try{
+    const res=await fetch('/api/zodiac',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system,messages:[{role:'user',content:`Миний төрсөн он ${year}, ${month}-р сарын ${day}. Зурхайг уншиж өгнө үү.`}]})
+    });
+    const data=await res.json();
+    clearInterval(interval);
+
+    if(data.content&&data.content[0]){
+      const full=data.content[0].text.replace(/[#*_`]/g,'').trim();
+      const sentences=full.split(/(?<=[.!?])\s+/);
+      const free=sentences.slice(0,2).join(' ');
+      const blur=sentences.slice(2).join(' ');
+
+      document.getElementById('infoRow').innerHTML=`
+        <span class="info-pill">${mn.element} ${mn.animal}</span>
+        <span class="info-pill">${ws.sym} ${ws.name}</span>
+        <span class="info-pill">${year} он</span>
+        ${name?`<span class="info-pill">${name}</span>`:''}`;
+
+      const freeEl=document.getElementById('freeText');
+      freeEl.innerHTML='';
+      free.split('\n').filter(l=>l.trim()).forEach(line=>{
+        const p=document.createElement('p');
+        p.textContent=line;
+        freeEl.appendChild(p);
+      });
+
+      if(blur){
+        document.getElementById('blurContent').textContent=blur;
+      }
+
+      document.getElementById('loadingState').style.display='none';
+      document.getElementById('resultsSection').classList.add('show');
+    }
+  }catch(err){
+    clearInterval(interval);
+    document.getElementById('loadingState').style.display='none';
+    document.getElementById('errorState').style.display='block';
+  }
+}
+
+loadReading();
+</script>
+</body>
+</html>
