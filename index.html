@@ -231,15 +231,10 @@ function buildSystem(type){const mn=userData.mongolian,ws=userData.western,g=use
 "Чи хайж байгаа хариултаа аль хэдийн мэдэж байсан. Зүгээр л хэн нэгэн баталж өгөхийг хүсэж байсан юм. Чиний зам тодорхой — зөвхөн эхлэх л хэрэгтэй."`;}
 
 async function callClaude(system,msg){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
+  const res=await fetch('/api/zodiac',{
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key': 'ANTHROPIC_KEY_HERE',
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,system,messages:[{role:'user',content:msg}]})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({system,messages:[{role:'user',content:msg}]})
   });
   const data=await res.json();
   if(data.content?.[0])return data.content[0].text.replace(/[#*_`]/g,'').trim();
